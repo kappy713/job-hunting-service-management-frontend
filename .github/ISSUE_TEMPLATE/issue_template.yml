@@ -1,0 +1,39 @@
+name: � Issue Template
+description: 汎用的なIssueテンプレート
+title: ""
+labels: []
+assignees: []
+body:
+  - type: textarea
+    id: overview
+    attributes:
+      label: 概要
+      description: このissueについて簡単に記述
+      placeholder: このissueについて簡単に記述してください
+    validations:
+      required: true
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 目的
+      description: このissueを作成する目的について記述
+      placeholder: このissueを作成する目的について記述してください
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: 詳細
+      description: このissueについての詳細を記述
+      placeholder: このissueについての詳細を記述してください
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: その他
+      description: 上記以外で共有しておきたいことを記述
+      placeholder: 上記以外で共有しておきたいことを記述してください
