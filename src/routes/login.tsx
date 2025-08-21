@@ -72,7 +72,10 @@ export default function Login() {
   return (
     <div className="w-full flex justify-center items-center p-4">
       <div className="w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-10">ログイン</h2>
+        <h2 className="text-2xl font-bold text-center mb-2">ログイン</h2>
+        <h4 className="text-center text-sm text-gray-600 mb-10">
+          メールアドレスとパスワードを入力してください
+        </h4>
         <Box
           component="form"
           sx={{
