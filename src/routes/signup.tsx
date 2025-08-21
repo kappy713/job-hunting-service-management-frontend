@@ -55,6 +55,18 @@ export default function SignUp() {
   const handleClick = () => {
     navigate("/login", { state: { referrer: "signUp" } });
   };
+  const handleSignInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/welcome`,
+      },
+    });
+
+    if (error) {
+      console.error("Google認証エラー:", error.message);
+    }
+  };
 
   return (
     <div className="w-full flex justify-center items-center p-4">
@@ -104,6 +116,27 @@ export default function SignUp() {
             secondaryText="アカウントをお持ちの方はこちら"
             onClick={handleClick}
           />
+          <div className="mt-6 flex items-center justify-center px-15">
+            <div className="w-full border-t border-gray-300"></div>
+            <span className="px-4 text-sm text-gray-500 whitespace-nowrap">
+              または次の方法で続行
+            </span>
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="justify-center items-center flex">
+            <button
+              onClick={handleSignInWithGoogle}
+              disabled={isSubmitting}
+              className="w-4/5 py-3 flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              <img
+                src="/logos/google.png"
+                alt="Google logo"
+                className="h-5 w-5"
+              />
+              <span>Google</span>
+            </button>
+          </div>
         </Box>
       </div>
     </div>

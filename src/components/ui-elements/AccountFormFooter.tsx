@@ -8,7 +8,6 @@ type AccountFormFooterProps = {
 
 const AccountFormFooter = ({
   text,
-  icon,
   secondaryText,
   onClick,
   disabled,
@@ -24,10 +23,9 @@ const AccountFormFooter = ({
       <button
         type="submit"
         disabled={disabled}
-        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg flex items-center gap-1 transition-colors disabled:bg-gray-400"
+        className="bg-[#00005d] hover:bg-blue-900 text-white  py-2 px-3 rounded-lg flex items-center gap-1 transition-colors disabled:bg-gray-400"
       >
         <span>{text}</span>
-        {icon}
       </button>
     </div>
   );
