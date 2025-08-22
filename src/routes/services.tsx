@@ -12,29 +12,29 @@ const jobServices = [
 export default function Services() {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
-  const handleServiceClick = (serviceId: string) => {
-    if (selectedServices.includes(serviceId)) {
+  const handleServiceClick = (serviceName: string) => {
+    if (selectedServices.includes(serviceName)) {
       setSelectedServices(
-        selectedServices.filter((value) => value !== serviceId)
+        selectedServices.filter((value) => value !== serviceName)
       );
     } else {
-      setSelectedServices([...selectedServices, serviceId]);
+      setSelectedServices([...selectedServices, serviceName]);
     }
   };
 
   return (
-    <div className="flex-col p-83 bg-[#4699ca]/10 pt-19 max-w-10xl justify-center items-center">
+    <div className="flex-col p-83 bg-[#4699ca]/10 pt-19 max-w-8xl justify-center items-center">
       <div className="max-w-3xl bg-white p-3 rounded-2xl shadow-xl justify-center items-center">
         <h1 className="text-3xl font-semibold mb-10 text-center pt-4">
           登録予定の就活サービスを全て選択してください
         </h1>
         <div className="flex flex-wrap gap-7 max-w-2xl justify-center items-center">
           {jobServices.map((service) => {
-            const isSelected = selectedServices.includes(service.value);
+            const isSelected = selectedServices.includes(service.name);
             return (
               <div key={service.value} className="relative group">
                 <button
-                  onClick={() => handleServiceClick(service.value)}
+                  onClick={() => handleServiceClick(service.name)}
                   className={`
                     w-38 h-38 rounded-full border-2 transition-all duration-300 transform hover:scale-110
                     flex items-center justify-center
