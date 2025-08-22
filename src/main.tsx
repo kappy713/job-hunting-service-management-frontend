@@ -5,6 +5,7 @@ import "./index.css";
 import Home from "./routes/home";
 import About from "./routes/about";
 import Services from "./routes/services";
+import SampleUsers from './routes/sample-users'
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
     element: <Services />,
   },
 ]);
+    path: "/sample-users",
+    element: <SampleUsers />,
+  },
+])
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
