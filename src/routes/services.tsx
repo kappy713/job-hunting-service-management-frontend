@@ -23,8 +23,8 @@ export default function Services() {
   };
 
   return (
-    <div className="flex-col p-10 bg-[#4699ca]/10 pt-35 max-w-10xl">
-      <div className="max-w-2xl mx-auto bg-white p-3 rounded-2xl shadow-xl">
+    <div className="flex-col p-83 bg-[#4699ca]/10 pt-19 max-w-10xl justify-center items-center">
+      <div className="max-w-3xl bg-white p-3 rounded-2xl shadow-xl justify-center items-center">
         <h1 className="text-3xl font-semibold mb-10 text-center pt-4">
           登録予定の就活サービスを全て選択してください
         </h1>
