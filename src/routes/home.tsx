@@ -58,14 +58,19 @@ export default function Home() {
             and save to test HMR
           </p>
         </div>
-
-        {/* Navigation Link */}
-        <div className="flex justify-center">
-          <Link
-            to="/about"
+        {/* Navigation Links */}
+        <div className="flex justify-center space-x-4">
+          <Link 
+            to="/about" 
             className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
           >
             About
+          </Link>
+          <Link 
+            to="/sample-users" 
+            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
+          >
+            Sample Users
           </Link>
         </div>
         <div className="flex justify-center">
