@@ -53,6 +53,7 @@ export default function Login() {
     }
   };
 
+  //パスワード再設定、できたらやる
   const handleClick = () => {
     navigate("/reset_password", { state: { referrer: "login" } });
   };
@@ -112,7 +113,7 @@ export default function Login() {
             disabled={isSubmitting}
             text="ログイン"
             icon={<ArrowForwardIcon />}
-            secondaryText="パスワードを忘れた場合"
+            secondaryText=""
             onClick={handleClick}
           />
           <div className="mt-6 flex items-center justify-center px-15">
