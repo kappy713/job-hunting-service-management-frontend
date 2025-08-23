@@ -405,7 +405,6 @@ export default function ES() {
   useEffect(() => {
     // デモ用に、表示したいサービスのIDを配列として定義。消す！！！！
     const demoSelectedServiceIds = [
-      "myES",
       "supporters",
       "levtech_rookie",
       "one_career",
@@ -552,22 +551,41 @@ export default function ES() {
       {/* --- タブナビゲーション --- */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          {userServices.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg
-                ${
-                  activeTab === tab.id
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }
-              `}
-            >
-              {tab.name}
-            </button>
-          ))}
+          {/* --- マイエントリーシートタブを常に表示 --- */}
+          <button
+            key="myES"
+            onClick={() => setActiveTab("myES")}
+            className={`
+      whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg
+      ${
+        activeTab === "myES"
+          ? "border-blue-500 text-blue-600"
+          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+      }
+    `}
+          >
+            マイエントリーシート
+          </button>
+
+          {/* --- ユーザーが選択した他のサービスを表示 --- */}
+          {userServices
+            .filter((tab) => tab.id !== "myES") // myESを除外して重複を防ぐ
+            .map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+          whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg
+          ${
+            activeTab === tab.id
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+          }
+        `}
+              >
+                {tab.name}
+              </button>
+            ))}
         </nav>
       </div>
 
