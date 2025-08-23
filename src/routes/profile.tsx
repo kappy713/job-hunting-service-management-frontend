@@ -487,11 +487,13 @@ export default function Profile() {
     }
   }, [profile, lastSaved]);
 
-  const set = useCallback((path: string[], val: any) => {
-    setProfile((p: any) => {
-      const next = JSON.parse(JSON.stringify(p));
-      let cur = next;
-      for (let i = 0; i < path.length - 1; i++) cur = cur[path[i]];
+  const set = useCallback((path: string[], val: string | string[] | number | object) => {
+    setProfile((p: Profile) => {
+      const next = JSON.parse(JSON.stringify(p)) as Profile;
+      let cur: Record<string, unknown> = next as Record<string, unknown>;
+      for (let i = 0; i < path.length - 1; i++) {
+        cur = cur[path[i]] as Record<string, unknown>;
+      }
       cur[path[path.length - 1]] = val;
       return next;
     });
