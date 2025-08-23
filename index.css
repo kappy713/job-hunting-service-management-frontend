@@ -1,0 +1,110 @@
+/* 全体レイアウト */
+:root {
+  --blue: #1777cf;      /* 青帯 */
+  --line: #e5e7eb;      /* 薄いグレーのボーダー */
+  --text: #111827;      /* 文字 */
+  --muted: #6b7280;     /* 補助文字 */
+  --bg: #f7f7f9;        /* ページ背景 */
+  --white: #ffffff;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ヘッダー（青帯） */
+.topbar { background: var(--blue); color: #fff; }
+.topbar__inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  display: flex; justify-content: center; align-items: center;
+}
+.topbar__title { margin: 0; font-size: 20px; font-weight: 700; }
+
+/* コンテナとカード */
+.container { max-width: 1080px; margin: 24px auto 40px; padding: 0 20px; }
+.card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+}
+.sectionTitle { margin: 0 0 16px; font-size: 16px; font-weight: 700; }
+
+/* グリッド（2カラム） */
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; }
+.field--full { grid-column: 1 / -1; }
+
+/* ラベル・入力 */
+.label { display: inline-block; font-size: 13px; color: var(--text); margin-bottom: 6px; }
+.req { color: #e11d48; }
+
+.input, .select, .textarea {
+  width: 100%; box-sizing: border-box; font-size: 14px;
+  padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px;
+  background: #fff; outline: none;
+}
+.input:focus, .select:focus, .textarea:focus {
+  border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+
+/* エラー */
+.error { margin: 6px 0 0; color: #dc2626; font-size: 12px; }
+
+/* 職種チェックボックス */
+.jobs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px 12px; }
+.jobItem { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text); }
+
+/* ボタン */
+.actions { display: flex; justify-content: center; padding-top: 10px; border-top: 1px solid var(--line); margin-top: 16px; }
+.btnPrimary {
+  padding: 10px 24px; font-size: 14px; border-radius: 24px; border: 0;
+  background: var(--blue); color: #fff; cursor: pointer;
+}
+.btnPrimary:disabled { opacity: .5; cursor: not-allowed; }
+.btnSecondary {
+  padding: 10px 24px; font-size: 14px; border-radius: 24px; border: 1px solid var(--line);
+  background: #fff; color: var(--text); cursor: pointer;
+}
+
+/* レスポンシブ（スマホは1カラム） */
+@media (max-width: 720px) {
+  .grid { grid-template-columns: 1fr; }
+  .jobs { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===== プレビュー用の追記 ===== */
+.previewTop { justify-content: space-between; }
+.previewTop .left .product { font-weight: 700; }
+.previewTop .right { display: flex; align-items: center; gap: 10px; }
+.previewTop .right .status {
+  font-size: 12px; padding: 2px 6px; border-radius: 6px; background: #111827;
+}
+.previewTop .right .user { opacity: .9; }
+.previewTop .right .avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,.2); display: inline-flex; align-items: center; justify-content: center;
+}
+
+/* セクション */
+.previewSection + .previewSection { margin-top: 18px; }
+.previewToolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.previewToolbar .title { font-size: 13px; color: var(--muted); }
+.previewToolbar .tools { display: flex; gap: 6px; }
+.toolBtn {
+  border: 1px solid var(--line); background: #fff; border-radius: 6px;
+  padding: 4px 8px; cursor: pointer;
+}
+
+/* 大きな表示ボックス */
+.previewBox { border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: #fff; }
+
+/* 読み取り専用テキスト */
+.readonly { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 14px; color: var(--text); min-height: 96px; }
+.previewBox::after { content: ""; display: block; height: 8px; }

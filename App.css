@@ -1,0 +1,172 @@
+/* =========================
+   ベース／全体リセット
+========================= */
+html, body, #root { height: 100%; }
+body { margin: 0; }
+.App { text-align: center; }
+
+/* React のロゴ */
+.App-logo { height: 40vmin; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo { animation: App-logo-spin infinite 20s linear; }
+}
+@keyframes App-logo-spin { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
+
+/* ヘッダー（必要なら調整） */
+:root { --topbar-h: 56px; }
+.App-link { color: #61dafb; }
+
+/* ページ骨格：上にヘッダー、中央にカード */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+}
+.topbar__inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+.container {
+  flex: 1;
+  min-height: calc(100vh - var(--topbar-h));
+  display: grid;
+  place-items: center;          /* ← 白いカードを縦横ど真ん中へ */
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  width: 150%;              /* 150%の横幅 */
+  max-width: 2000px;
+  margin: 0 auto;            /* 中央寄せ */
+  transform: translateX(-17%); /* ★ 左に25%ずらして見た目中央に */
+  box-sizing: border-box;
+}
+
+
+
+
+/* =========================
+   入力UI（共通）
+========================= */
+.label {
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #374151;
+}
+.input,
+.select,
+.jobs {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 16px;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+.input:focus,
+.select:focus,
+.jobs:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96,165,250,0.25);
+}
+.error { color: #ef4444; font-size: 12px; margin-top: 6px; }
+
+/* =========================
+   レイアウトユーティリティ
+========================= */
+/* 2列行（必要な箇所で使用） */
+.row-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(240px, 1fr)); /* 常に2列 */
+  gap: 12px 16px;
+  width: 100%;
+  max-width: 560px;             /* 帯幅 */
+  margin: 0 auto;               /* 中央配置 */
+}
+.row-2 .field {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+.row-2 .input,
+.row-2 .select { width: 100%; min-width: 0; }
+
+/* 1列の中央行（目指す職種用） */
+.row-single {
+  display: flex;
+  justify-content: center;      /* 横中央 */
+  width: 100%;
+  max-width: 560px;
+  margin: 16px auto 0;
+}
+
+/* 職種のブロック：中央に、見た目幅は控えめ＋右に移動 */
+.row-single .field.center {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  transform: translateX(240px);  /* ★ 右に50px移動 → 数値を調整可能 */
+}
+
+/* 既存の .field.center が他の幅を強制している場合の打ち消し */
+.field.center .input,
+.field.center .select,
+.field.center .jobs { min-width: 0; }
+
+/* =========================
+   レスポンシブ
+========================= */
+@media (max-width: 640px) {
+  .container { padding: 16px; }
+  .card { padding: 16px; max-width: 94%; }
+
+  .row-2 {
+    grid-template-columns: 1fr; /* スマホは1列 */
+    max-width: 100%;
+  }
+  .row-single { max-width: 100%; }
+  .row-single .field.center { max-width: 100%; }
+}
+
+/* ヘッダー全体 */
+.topbar {
+  height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;   /* ← ヘッダー全体を中央寄せ */
+  background: #1E90FF;       /* 背景色は任意 */
+}
+
+/* タイトルを中央揃え */
+.topbar__title {
+  margin: 0;
+  font-size: 20px;
+  color: #fff;
+  text-align: center;
+}
+
+/* ヘッダーの内側コンテナ */
+.topbar__inner {
+  display: flex;
+  justify-content: center;   /* ← 中央に配置 */
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 16px;
+}
