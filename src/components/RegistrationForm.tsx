@@ -1,5 +1,5 @@
 // src/components/RegistrationForm.tsx
-import React, { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import type { Form } from "../types";
 
 type Props = {
@@ -25,7 +25,7 @@ const ALL_JOBS = ["エンジニア"] as const;
 export default function RegistrationForm({ form, setForm, onRegister }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleChange = (key: keyof Form, value: any) => {
+  const handleChange = (key: keyof Form, value: string | string[] | number) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -37,7 +37,7 @@ export default function RegistrationForm({ form, setForm, onRegister }: Props) {
     return !Number.isNaN(d.getTime());
   };
 
-  const validate = (f: Form) => {
+  const validate = useCallback((f: Form) => {
     const e: Record<string, string> = {};
     if (!f.lastName?.trim()) e.lastName = "姓は必須です";
     if (!f.firstName?.trim()) e.firstName = "名は必須です";
@@ -53,9 +53,9 @@ export default function RegistrationForm({ form, setForm, onRegister }: Props) {
     if (!f.track) e.track = "学部・学科系統を選択してください";
     if (!f.jobs) e.jobs = "目指す職種を選択してください";
     return e;
-  };
+  }, []);
 
-  const isInvalid = useMemo(() => Object.keys(validate(form)).length > 0, [form]);
+  const isInvalid = useMemo(() => Object.keys(validate(form)).length > 0, [form, validate]);
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
