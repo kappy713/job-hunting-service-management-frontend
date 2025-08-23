@@ -33,7 +33,7 @@ export const apiFetch = async <T>(
           errorMessage += ` - ${errorData.error}`;
         }
         console.error('API Error Details:', errorData);
-      } catch (jsonError) {
+      } catch (_) {
         console.error('Could not parse error response as JSON');
       }
       throw new Error(errorMessage);
