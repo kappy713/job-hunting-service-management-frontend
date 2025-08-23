@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FaPencilAlt, FaCopy, FaSave } from "react-icons/fa";
+//import EditableTextField from "@/components/EditableTextField";
 
 // データ定義：コンポーネントの外に記述
 const servicesData = [
@@ -152,7 +153,7 @@ const servicesData = [
         recommended: "",
       },
       {
-        id: "languages",
+        id: "language_levels",
         label: "言語スキルレベル",
         charLimit: 0,
         recommended: "",
@@ -454,7 +455,7 @@ export default function ESEditingPage() {
                 <div key={field.id} className="relative">
                   <label className="block text-lg font-semibold text-gray-700 mb-2">
                     {field.label}
-                    {field.charLimit && ` (${field.charLimit}文字)`}
+                    {field.charLimit > 0 && ` (${field.charLimit}文字以内)`}
                   </label>
 
                   {/* --- アイコンエリア --- */}
