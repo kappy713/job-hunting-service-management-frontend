@@ -114,6 +114,12 @@ export default function Home() {
           >
             Sample Users
           </Link>
+          <Link 
+            to="/register" 
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
+          >
+            Register
+          </Link>
         </div>
         <div className="flex justify-center">
           <Link

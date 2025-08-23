@@ -8,6 +8,7 @@ import Login from "./routes/login";
 import SignUp from "./routes/signup";
 import Services from "./routes/services";
 import SampleUsers from "./routes/sample-users";
+import Register from "./routes/register";
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
   {
     path: "/sample-users",
     element: <SampleUsers />,
+  },
+  {
+    path: "/register",
+    element: <Register />,
   },
 ]);
 
