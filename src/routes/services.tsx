@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const jobServices = [
   { value: "mynavi", name: "マイナビ" },
@@ -11,6 +12,7 @@ const jobServices = [
 
 export default function Services() {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   const handleServiceClick = (serviceName: string) => {
     if (selectedServices.includes(serviceName)) {
@@ -20,6 +22,14 @@ export default function Services() {
     } else {
       setSelectedServices([...selectedServices, serviceName]);
     }
+  };
+
+  const handleSubmit = () => {
+    // ここで選択されたサービスをSupabaseに保存する処理を追加
+    console.log("選択されたサービス:", selectedServices);
+
+    // /es ページに移動
+    navigate("/es");
   };
 
   return (
@@ -67,6 +77,7 @@ export default function Services() {
 
         <div className="mt-8 translate-x-135">
           <button
+            onClick={handleSubmit}
             className="bg-gradient-to-r from-[#1760a0] to-[#1760a0] font-bold py-3 px-9 rounded-md transition-all duration-300 transform hover:scale-105 text-white"
             disabled={selectedServices.length === 0}
           >

@@ -4,11 +4,12 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import "./index.css";
 import Home from "./routes/home";
 import About from "./routes/about";
-import Servicees from "./routes/servicees";
+import Servicees from "./routes/es";
 import Login from "./routes/login";
 import SignUp from "./routes/signup";
 import Services from "./routes/services";
 import SampleUsers from "./routes/sample-users";
+import ES from "./routes/es";
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
   {
     path: "/sample-users",
     element: <SampleUsers />,
+  },
+  {
+    path: "/es",
+    element: <ES />,
   },
 ]);
 

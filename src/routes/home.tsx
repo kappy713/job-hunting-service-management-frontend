@@ -123,6 +123,14 @@ export default function Home() {
             Services
           </Link>
         </div>
+        <div className="flex justify-center">
+          <Link
+            to="/es"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
+          >
+            ES
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -20,4 +20,8 @@ export const routes = [
     path: "/signup",
     file: "routes/signup.tsx",
   },
+  {
+    path: "/es",
+    file: "routes/es.tsx",
+  },
 ];

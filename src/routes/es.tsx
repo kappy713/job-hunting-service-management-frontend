@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaPencilAlt, FaCopy, FaSave } from "react-icons/fa";
-//import EditableTextField from "@/components/EditableTextField";
+import { supabase } from "../utils/supabase"; // パスをエイリアスに変更
+import type { User } from "@supabase/supabase-js";
 
 // データ定義：コンポーネントの外に記述
 const servicesData = [
@@ -379,14 +380,43 @@ type EditingState = {
   };
 };
 
+// ★ APIレスポンスの型を定義
+type LastUpdatedResponse = {
+  [serviceId: string]: { [fieldId: string]: string };
+};
+
 // Reactコンポーネント
-export default function ESEditingPage() {
+export default function ES() {
   // どのタブがアクティブかを記憶するState
   const [activeTab, setActiveTab] = useState(servicesData[0].id);
   // 全サービスの全テキスト情報を一元管理するState
   const [formTexts, setFormTexts] = useState<FormState>({});
   // どのテキストエリアが編集モードかを管理するState
   const [editingFields, setEditingFields] = useState<EditingState>({});
+
+  const [lastUpdated, setLastUpdated] = useState<LastUpdatedResponse>({});
+  const [user, setUser] = useState<User | null>(null);
+
+  // ユーザー情報の取得と、最終更新日時を取得
+  useEffect(() => {
+    async function fetchData() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+
+      if (user) {
+        // ここでAPIを呼び出し、レスポンス例のデータを取得する
+        // 今回はダミーデータとして直接セットします
+        const dummyResponse: LastUpdatedResponse = {
+          mynavi: { self_promotion: "2025-08-23T10:30:00+09:00" },
+          levtech_rookie: { desired_job_type: "2025-08-22T14:00:00+09:00" },
+        };
+        setLastUpdated(dummyResponse);
+      }
+    }
+    fetchData();
+  }, []);
 
   // --- イベントハンドラー関数 ---
   const handleTextChange = (
@@ -415,7 +445,29 @@ export default function ESEditingPage() {
     const textToSave = formTexts[serviceId]?.[fieldId] || "";
     console.log(`保存するテキスト (${serviceId} - ${fieldId}): ${textToSave}`);
     alert("保存しました！");
+    // 1. 新しい日時を生成
+    const newTimestamp = new Date().toLocaleString("ja-JP");
+
+    // 2. lastUpdated Stateを更新
+    setLastUpdated((prev) => ({
+      ...prev,
+      [serviceId]: {
+        ...prev[serviceId],
+        [fieldId]: newTimestamp,
+      },
+    }));
     // ここでSupabaseへの保存処理を呼び出す
+    if (user) {
+      const saveLog = async () => {
+        const { error } = await supabase.from("logs").insert({
+          user_id: user.id,
+          field_name: fieldId,
+          // target_table: serviceId, // 必要であれば
+        });
+        if (error) console.error("Error saving log:", error);
+      };
+      saveLog();
+    }
   };
 
   const handleCopyClick = (serviceId: string, fieldId: string) => {
@@ -455,6 +507,13 @@ export default function ESEditingPage() {
 
       {/* --- フォーム表示エリア --- */}
       <div className="mt-8">
+        {activeTab !== "myES" && (
+          <div className="flex justify-start mb-6">
+            <button className="bg-[#1760a0] hover:scale-105 text-white font-bold py-2 px-6 rounded-lg text-base">
+              一括生成
+            </button>
+          </div>
+        )}
         {currentService && (
           <form className="space-y-8">
             {currentService.fields.map((field) => {
@@ -462,6 +521,13 @@ export default function ESEditingPage() {
                 editingFields[currentService.id]?.[field.id] || false;
               const currentText =
                 formTexts[currentService.id]?.[field.id] || "";
+
+              // ★ 1. Stateから最終更新日時を取得
+              const updatedAtTimestamp =
+                lastUpdated[currentService.id]?.[field.id];
+              const lastUpdatedTime = updatedAtTimestamp
+                ? new Date(updatedAtTimestamp).toLocaleString("ja-JP")
+                : "未更新";
 
               return (
                 <div key={field.id} className="relative">
@@ -472,6 +538,12 @@ export default function ESEditingPage() {
 
                   {/* --- アイコンエリア --- */}
                   <div className="absolute top-2 right-2 flex items-center space-x-2 text-gray-400">
+                    {/* ★ 2. 最終更新日時を表示 */}
+                    {!isEditing && (
+                      <span className="text-xs text-gray-500">
+                        最終更新: {lastUpdatedTime}
+                      </span>
+                    )}
                     {isEditing ? (
                       <button
                         type="button"
