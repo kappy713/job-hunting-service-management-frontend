@@ -22,7 +22,7 @@ export type Form = {
 export type CreateUserData = {
   last_name: string;
   first_name: string;
-  birth_date?: string;  // ISO 8601 format string (YYYY-MM-DD)
+  birth_date?: string | null;  // ISO 8601 format string (YYYY-MM-DD) or null
   age: number;
   university: string;
   category: string;     // 学部・学科系統
