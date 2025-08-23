@@ -397,27 +397,80 @@ export default function ES() {
   const [lastUpdated, setLastUpdated] = useState<LastUpdatedResponse>({});
   const [user, setUser] = useState<User | null>(null);
 
+  // ★ 1. ユーザーが選択したサービスだけを保持するState
+  const [userServices, setUserServices] = useState<typeof servicesData>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   // ユーザー情報の取得と、最終更新日時を取得
   useEffect(() => {
-    async function fetchData() {
+    // デモ用に、表示したいサービスのIDを配列として定義。消す！！！！
+    const demoSelectedServiceIds = [
+      "myES",
+      "supporters",
+      "levtech_rookie",
+      "one_career",
+    ];
+    const filteredServices = servicesData.filter((service) =>
+      demoSelectedServiceIds.includes(service.id)
+    );
+    setUserServices(filteredServices);
+    if (filteredServices.length > 0) {
+      setActiveTab(filteredServices[0].id);
+    }
+    setIsLoading(false);
+
+    //以下、バックエンドと繋げたらコメントアウト解除
+    /*async function fetchData() {
+      // 1. 現在のログインユーザー情報を取得
       const {
         data: { user },
       } = await supabase.auth.getUser();
       setUser(user);
 
       if (user) {
-        // ここでAPIを呼び出し、レスポンス例のデータを取得する
-        // 今回はダミーデータとして直接セットします
-        const dummyResponse: LastUpdatedResponse = {
+        // 2. ユーザーが選択したサービスを取得
+        const { data, error } = await supabase
+          .from("users") // あなたのプロフィールテーブル名
+          .select("services") // サービスが保存されているカラム名
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          setIsLoading(false);
+          return;
+        }
+
+        if (data && data.services) {
+          const selectedServiceNames = data.services;
+
+          // ★ 3. 全サービスリストから、ユーザーが選択したものだけを名前でフィルタリング
+          const filteredServices = servicesData.filter(
+            (service) => selectedServiceNames.includes(service.name) // `id`ではなく`name`で照合
+          );
+          setUserServices(filteredServices);
+          if (filteredServices.length > 0) {
+            setActiveTab(filteredServices[0].id);
+          }
+        }
+
+        // 3. 最終更新日時のログを取得（API呼び出し）
+        // あなたのバックエンドAPIのエンドポイントをここに設定します
+        // const response = await fetch('/api/get-logs');
+        // const logsData: LastUpdatedResponse = await response.json();
+
+        // 今回はダミーデータをそのまま使います
+        const logsData: LastUpdatedResponse = {
           mynavi: { self_promotion: "2025-08-23T10:30:00+09:00" },
           levtech_rookie: { desired_job_type: "2025-08-22T14:00:00+09:00" },
         };
-        setLastUpdated(dummyResponse);
+        setLastUpdated(logsData);
       }
+      setIsLoading(false); // 全てのデータ取得が終わったらローディングを解除
     }
-    fetchData();
-  }, []);
 
+    fetchData();*/
+  }, []);
   // --- イベントハンドラー関数 ---
   const handleTextChange = (
     serviceId: string,
@@ -482,12 +535,24 @@ export default function ES() {
     (service) => service.id === activeTab
   );
 
+  if (isLoading) {
+    return <div>読み込み中...</div>;
+  }
+
+  if (userServices.length === 0) {
+    return (
+      <div>
+        表示する就活サービスがありません。サービス選択ページで登録してください。
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-5xl mx-auto p-4 md:p-8">
       {/* --- タブナビゲーション --- */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          {servicesData.map((tab) => (
+          {userServices.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -508,7 +573,7 @@ export default function ES() {
 
       {/* --- フォーム表示エリア --- */}
       <div className="mt-8">
-        {activeTab !== "myES" && (
+        {activeTab == "myES" && (
           <div className="flex justify-start mb-6">
             <button className="bg-[#1760a0] hover:scale-105 text-white font-bold py-2 px-6 rounded-lg text-base">
               一括生成
