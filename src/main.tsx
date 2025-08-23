@@ -6,6 +6,7 @@ import Home from "./routes/home";
 import About from "./routes/about";
 import Login from "./routes/login";
 import SignUp from "./routes/signup";
+import SampleUsers from "./routes/sample-users";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
   {
     path: "/signup",
     element: <SignUp />,
+  },
+  {
+    path: "/sample-users",
+    element: <SampleUsers />,
   },
 ]);
 
