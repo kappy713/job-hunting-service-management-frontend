@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/utils/supabase";
+import { supabase } from "../utils/supabase";
 import { FaPencilAlt, FaCopy, FaSave } from "react-icons/fa";
 
 type EditableTextFieldProps = {
@@ -36,6 +36,9 @@ export default function EditableTextField({
         // 日時を分かりやすい形式にフォーマット
         const formattedDate = new Date(data.updated_at).toLocaleString("ja-JP");
         setLastUpdated(formattedDate);
+      }
+      if (error) {
+        console.error("Error fetching logs:", error);
       }
     }
     fetchLastUpdated();
