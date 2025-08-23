@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import RegistrationForm from '../components/RegistrationForm';
 import type { Form, CreateUserData } from '../types';
+import { userAPI } from '../api/user';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -22,10 +23,10 @@ export default function Register() {
       "既卒": 10,
     };
 
-    return {
+    const result = {
       last_name: form.lastName.trim(),
       first_name: form.firstName.trim(),
-      birth_date: form.birthDate ? form.birthDate : undefined,
+      birth_date: form.birthDate ? `${form.birthDate}T00:00:00Z` : null,
       age: typeof form.age === 'string' ? parseInt(form.age, 10) : (form.age || 0),
       university: form.university.trim(),
       category: form.track, // 学部・学科系統 (track) をcategoryに
@@ -33,21 +34,38 @@ export default function Register() {
       grade: gradeMapping[form.grade] || 1,
       target_job_type: typeof form.jobs === 'string' ? form.jobs : (form.jobs[0] || ''),
     };
+
+    // バリデーション確認のため重要フィールドをログ出力
+    console.log('変換結果:');
+    console.log('- birth_date:', result.birth_date);
+    console.log('- age:', result.age);
+    console.log('- grade:', result.grade);
+
+    return result;
   }
 
-  const handleSubmit = (validatedForm: Form) => {
-    // フォームデータを保存
-    localStorage.setItem('userFormData', JSON.stringify(validatedForm));
-    
-    // バックエンド形式に変換してデバッグ確認
-    const backendData = convertToCreateUserData(validatedForm);
-    console.log('バックエンド送信用データ:', backendData);
-    
-    // バックエンド形式も保存（将来のAPI送信用）
-    localStorage.setItem('userBackendData', JSON.stringify(backendData));
-    
-    alert('登録が完了しました！プロフィール画面で詳細を編集できます。');
-    navigate('/profile');
+  const handleSubmit = async (validatedForm: Form) => {
+    try {
+      // フォームデータを保存
+      localStorage.setItem('userFormData', JSON.stringify(validatedForm));
+      
+      // バックエンド形式に変換
+      const backendData = convertToCreateUserData(validatedForm);
+      console.log('送信前のフォームデータ:', validatedForm);
+      console.log('バックエンド送信用データ:', JSON.stringify(backendData, null, 2));
+      
+      // バックエンドAPIに送信
+      await userAPI.create(backendData);
+      
+      // バックエンド形式も保存（デバッグ用）
+      localStorage.setItem('userBackendData', JSON.stringify(backendData));
+      
+      console.log('ユーザー登録が完了しました！');
+      navigate('/register-es');
+    } catch (error) {
+      console.error('ユーザー登録エラー:', error);
+      console.error(`登録に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`);
+    }
   };
 
   return (
