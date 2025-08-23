@@ -3,7 +3,7 @@ import { FaPencilAlt, FaCopy, FaSave } from "react-icons/fa";
 import { supabase } from "../utils/supabase"; // パスをエイリアスに変更
 import type { User } from "@supabase/supabase-js";
 
-// データ定義：コンポーネントの外に記述
+// データ定義
 const servicesData = [
   {
     id: "myES",
@@ -246,44 +246,127 @@ const servicesData = [
       {
         id: "skills",
         label: "プログラミングスキル",
-        charLimit: 500,
-        recommended: "",
+        type: "structured_list",
+        subFields: [
+          {
+            id: "language",
+            label: "言語・技術",
+            type: "select",
+            options: [
+              "JavaScript",
+              "TypeScript",
+              "Python",
+              "Java",
+              "Go",
+              "PHP",
+              "Ruby",
+              "Swift",
+              "Kotlin",
+              "C++",
+              "C#",
+            ],
+          },
+          {
+            id: "application",
+            label: "用途",
+            type: "select",
+            options: [
+              "Webフロントエンド",
+              "Webバックエンド",
+              "iOSアプリ",
+              "Androidアプリ",
+              "機械学習",
+              "データ分析",
+            ],
+          },
+          { id: "overview", label: "概要", charLimit: 500, type: "textarea" },
+        ],
       },
       {
         id: "intern_experiences",
-        label: "インターン経験",
-        charLimit: 500,
-        recommended: "",
+        label: "インターン・開発アルバイト経験",
+        type: "structured_list",
+        subFields: [
+          {
+            id: "company",
+            label: "インターン・開発アルバイト先",
+            type: "textarea",
+          },
+          // 期間は選択式にします
+          {
+            id: "period",
+            label: "期間",
+            type: "select",
+            options: [
+              "1日",
+              "2~3日",
+              "1週間",
+              "2週間",
+              "1ヶ月",
+              "3ヶ月",
+              "半年",
+              "1年以上",
+            ],
+          },
+          { id: "content", label: "内容", charLimit: 2000, type: "textarea" },
+        ],
       },
       {
         id: "products",
         label: "制作物",
-        charLimit: 200,
-        recommended: "",
-      },
-      {
-        id: "product_tech_stacks",
-        label: "技術スタック",
-        charLimit: 200,
-        recommended: "",
-      },
-      {
-        id: "product_description",
-        label: "あなたが担当した箇所や工夫した点、受賞歴など",
-        charLimit: 500,
-        recommended: "",
+        // このフィールドが特別なリスト形式であることを示すtypeプロパティを追加
+        type: "structured_list",
+        // 登録できる最大数を設定
+        maxItems: 4,
+        // 1つの制作物が持つサブフィールドを定義
+        subFields: [
+          { id: "overview", label: "概要", charLimit: 200, type: "textarea" },
+          {
+            id: "place",
+            label: "取り組んだ場所",
+            type: "select",
+            options: [
+              "個人開発",
+              "チーム開発",
+              "インターン",
+              "ハッカソン",
+              "授業",
+            ],
+          },
+          {
+            id: "tech_stack",
+            label: "技術スタック",
+            charLimit: 200,
+            type: "textarea",
+          },
+          {
+            id: "description",
+            label: "あなたが担当した箇所や工夫した点、受賞歴など",
+            charLimit: 500,
+            type: "textarea",
+          },
+          {
+            id: "url",
+            label: "GitHubリポジトリURL",
+            charLimit: 0,
+            type: "textarea",
+          },
+          {
+            id: "other_url",
+            label: "その他のURL",
+            charLimit: 0,
+            type: "textarea",
+          },
+        ],
       },
       {
         id: "researches",
-        label: "研究テーマ",
-        charLimit: 0,
-        recommended: "",
-      },
-      {
-        id: "researche_descriptions",
-        label: "研究内容",
-        charLimit: 500,
-        recommended: "",
+        label: "研究",
+        type: "structured_list",
+        subFields: [
+          { id: "theme", label: "テーマ", type: "textarea" },
+          { id: "content", label: "内容", charLimit: 500, type: "textarea" },
+        ],
       },
     ],
   },
@@ -368,9 +451,39 @@ const servicesData = [
 ];
 
 // 型定義
+type Product = {
+  overview: string;
+  place: string;
+  tech_stack: string;
+  description: string;
+};
+
+type Research = {
+  theme: string;
+  content: string;
+};
+
+type Internship = {
+  company: string;
+  period: string;
+  content: string;
+};
+
+type ProgrammingSkill = {
+  language: string;
+  application: string;
+  overview: string;
+};
+
 type FormState = {
   [serviceId: string]: {
-    [fieldId: string]: string;
+    // ここで `any[]` を `Product[]` に置き換えます
+    [fieldId: string]:
+      | string
+      | Product[]
+      | Research[]
+      | Internship[]
+      | ProgrammingSkill[];
   };
 };
 
@@ -393,6 +506,7 @@ export default function ES() {
   const [formTexts, setFormTexts] = useState<FormState>({});
   // どのテキストエリアが編集モードかを管理するState
   const [editingFields, setEditingFields] = useState<EditingState>({});
+  const [editingSections, setEditingSections] = useState<EditingState>({});
 
   const [lastUpdated, setLastUpdated] = useState<LastUpdatedResponse>({});
   const [user, setUser] = useState<User | null>(null);
@@ -400,6 +514,296 @@ export default function ES() {
   // ★ 1. ユーザーが選択したサービスだけを保持するState
   const [userServices, setUserServices] = useState<typeof servicesData>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleEditSection = (serviceId: string, fieldId: string) => {
+    setEditingSections((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], [fieldId]: true },
+    }));
+  };
+
+  const handleCopySubField = (
+    serviceId: string,
+    fieldId: string,
+    index: number,
+    subFieldId: string
+  ) => {
+    const list = (formTexts[serviceId]?.[fieldId] || []) as any[];
+    if (list && list[index]) {
+      const textToCopy = list[index][subFieldId] || "";
+      navigator.clipboard.writeText(textToCopy);
+      alert("コピーしました！");
+    }
+  };
+
+  // 制作物リスト内のテキスト変更を処理するハンドラ
+  const handleProductChange = (
+    serviceId: string,
+    productIndex: number,
+    subFieldId: string,
+    value: string
+  ) => {
+    const currentProducts = (formTexts[serviceId]?.products || []) as Product[];
+    const newProducts = currentProducts.map((product, index) => {
+      if (index === productIndex) {
+        return { ...product, [subFieldId]: value };
+      }
+      return product;
+    });
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: {
+        ...prev[serviceId],
+        products: newProducts,
+      },
+    }));
+  };
+
+  const handleAddProduct = (serviceId: string) => {
+    const newProduct = {
+      overview: "",
+      place: "個人開発",
+      tech_stack: "",
+      description: "",
+      url: "",
+      other_url: "",
+    };
+    const currentProducts = (formTexts[serviceId]?.products || []) as Product[];
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: {
+        ...prev[serviceId],
+        products: [...currentProducts, newProduct],
+      },
+    }));
+  };
+
+  const handleRemoveProduct = (serviceId: string, productIndex: number) => {
+    const currentProducts = (formTexts[serviceId]?.products || []) as Product[];
+    const newProducts = currentProducts.filter(
+      (_, index) => index !== productIndex
+    );
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: {
+        ...prev[serviceId],
+        products: newProducts,
+      },
+    }));
+  };
+
+  const handleSaveProducts = (serviceId: string) => {
+    console.log(
+      `保存する制作物データ (${serviceId}):`,
+      formTexts[serviceId]?.products || []
+    );
+    const newTimestamp = new Date().toISOString();
+    setLastUpdated((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], products: newTimestamp },
+    }));
+    setEditingSections((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], products: false },
+    }));
+    alert("制作物を保存しました！");
+  };
+
+  const handleResearchChange = (
+    serviceId: string,
+    researchIndex: number,
+    subFieldId: string,
+    value: string
+  ) => {
+    const currentResearches = (formTexts[serviceId]?.researches ||
+      []) as Research[];
+    const newResearches = currentResearches.map((research, index) => {
+      if (index === researchIndex) {
+        return { ...research, [subFieldId]: value };
+      }
+      return research;
+    });
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], researches: newResearches },
+    }));
+  };
+
+  const handleAddResearch = (serviceId: string) => {
+    const newResearch: Research = { theme: "", content: "" };
+    const currentResearches = (formTexts[serviceId]?.researches ||
+      []) as Research[];
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: {
+        ...prev[serviceId],
+        researches: [...currentResearches, newResearch],
+      },
+    }));
+  };
+
+  const handleRemoveResearch = (serviceId: string, researchIndex: number) => {
+    const currentResearches = (formTexts[serviceId]?.researches ||
+      []) as Research[];
+    const newResearches = currentResearches.filter(
+      (_, index) => index !== researchIndex
+    );
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], researches: newResearches },
+    }));
+  };
+
+  const handleSaveResearches = (serviceId: string) => {
+    console.log(
+      `保存する研究データ (${serviceId}):`,
+      formTexts[serviceId]?.researches || []
+    );
+    const newTimestamp = new Date().toISOString();
+    setLastUpdated((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], researches: newTimestamp },
+    }));
+    setEditingSections((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], researches: false },
+    }));
+    alert("研究内容を保存しました！");
+  };
+
+  const handleInternshipChange = (
+    serviceId: string,
+    internshipIndex: number,
+    subFieldId: string,
+    value: string
+  ) => {
+    const currentInternships = (formTexts[serviceId]?.intern_experiences ||
+      []) as Internship[];
+    const newInternships = currentInternships.map((internship, index) => {
+      if (index === internshipIndex) {
+        return { ...internship, [subFieldId]: value };
+      }
+      return internship;
+    });
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], intern_experiences: newInternships },
+    }));
+  };
+
+  const handleAddInternship = (serviceId: string) => {
+    const newInternship: Internship = {
+      company: "",
+      period: "1ヶ月",
+      content: "",
+    };
+    const currentInternships = (formTexts[serviceId]?.intern_experiences ||
+      []) as Internship[];
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: {
+        ...prev[serviceId],
+        intern_experiences: [...currentInternships, newInternship],
+      },
+    }));
+  };
+
+  const handleRemoveInternship = (
+    serviceId: string,
+    internshipIndex: number
+  ) => {
+    const currentInternships = (formTexts[serviceId]?.intern_experiences ||
+      []) as Internship[];
+    const newInternships = currentInternships.filter(
+      (_, index) => index !== internshipIndex
+    );
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], intern_experiences: newInternships },
+    }));
+  };
+
+  const handleSaveInternships = (serviceId: string) => {
+    console.log(
+      `保存するインターン経験データ (${serviceId}):`,
+      formTexts[serviceId]?.intern_experiences || []
+    );
+    const newTimestamp = new Date().toISOString();
+    setLastUpdated((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], intern_experiences: newTimestamp },
+    }));
+    setEditingSections((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], intern_experiences: false },
+    }));
+    alert("インターン経験を保存しました！");
+  };
+
+  // スキルリスト内のテキスト変更を処理するハンドラ
+  const handleSkillChange = (
+    serviceId: string,
+    skillIndex: number,
+    subFieldId: string,
+    value: string
+  ) => {
+    const currentSkills = (formTexts[serviceId]?.skills ||
+      []) as ProgrammingSkill[];
+    const newSkills = currentSkills.map((skill, index) => {
+      if (index === skillIndex) {
+        return { ...skill, [subFieldId]: value };
+      }
+      return skill;
+    });
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], skills: newSkills },
+    }));
+  };
+
+  const handleAddSkill = (serviceId: string) => {
+    const newSkill: ProgrammingSkill = {
+      language: "JavaScript",
+      application: "Webフロントエンド",
+      overview: "",
+    };
+    const currentSkills = (formTexts[serviceId]?.skills ||
+      []) as ProgrammingSkill[];
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: {
+        ...prev[serviceId],
+        skills: [...currentSkills, newSkill],
+      },
+    }));
+  };
+
+  const handleRemoveSkill = (serviceId: string, skillIndex: number) => {
+    const currentSkills = (formTexts[serviceId]?.skills ||
+      []) as ProgrammingSkill[];
+    const newSkills = currentSkills.filter((_, index) => index !== skillIndex);
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], skills: newSkills },
+    }));
+  };
+
+  const handleSaveSkills = (serviceId: string) => {
+    console.log(
+      `保存するスキルデータ (${serviceId}):`,
+      formTexts[serviceId]?.skills || []
+    );
+    const newTimestamp = new Date().toISOString();
+    setLastUpdated((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], skills: newTimestamp },
+    }));
+    setEditingSections((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], skills: false },
+    }));
+    alert("プログラミングスキルを保存しました！");
+  };
 
   // ユーザー情報の取得と、最終更新日時を取得
   useEffect(() => {
@@ -418,7 +822,7 @@ export default function ES() {
     }
     setIsLoading(false);
 
-    //以下、バックエンドと繋げたらコメントアウト解除
+    //以下、バックエンドと繋げたらコメントアウト解除!!!!!!!!!
     /*async function fetchData() {
       // 1. 現在のログインユーザー情報を取得
       const {
@@ -601,18 +1005,744 @@ export default function ES() {
         {currentService && (
           <form className="space-y-8">
             {currentService.fields.map((field) => {
+              // ===========================================
+              // ▼▼▼ 'skills' の場合のJSXを追加 ▼▼▼
+              // ===========================================
+              if (field.type === "structured_list" && field.id === "skills") {
+                const isEditing =
+                  editingSections[currentService.id]?.[field.id] || false;
+                const skills = (formTexts[currentService.id]?.[field.id] ||
+                  []) as ProgrammingSkill[];
+                const updatedAtTimestamp =
+                  lastUpdated[currentService.id]?.[field.id];
+                const lastUpdatedTime = updatedAtTimestamp
+                  ? new Date(updatedAtTimestamp).toLocaleString("ja-JP")
+                  : "未更新";
+
+                return (
+                  <div key={field.id} className="border-t pt-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="block text-lg font-semibold text-gray-700">
+                        {field.label}
+                      </h3>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs text-gray-500">
+                          最終更新: {lastUpdatedTime}
+                        </span>
+                        {isEditing ? (
+                          <button
+                            type="button"
+                            onClick={() => handleSaveSkills(currentService.id)}
+                            className="text-gray-500 hover:text-green-500"
+                          >
+                            <FaSave />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleEditSection(currentService.id, field.id)
+                            }
+                            className="text-gray-500 hover:text-blue-500"
+                          >
+                            <FaPencilAlt />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {isEditing ? (
+                      <div>
+                        <div className="space-y-6">
+                          {skills.map((skill, index) => (
+                            <div
+                              key={index}
+                              className="border rounded-lg p-4 relative bg-gray-50"
+                            >
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleRemoveSkill(currentService.id, index)
+                                }
+                                className="absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold"
+                              >
+                                削除
+                              </button>
+                              {field.subFields?.map((subField) => (
+                                <div key={subField.id} className="mb-4">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <label className="block text-md font-medium text-gray-600">
+                                      {subField.label}
+                                    </label>
+                                    {subField.id === "overview" && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleCopySubField(
+                                            currentService.id,
+                                            field.id,
+                                            index,
+                                            subField.id
+                                          )
+                                        }
+                                        className="text-gray-400 hover:text-blue-500"
+                                      >
+                                        <FaCopy />
+                                      </button>
+                                    )}
+                                  </div>
+                                  {subField.type === "select" ? (
+                                    <select
+                                      className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
+                                      value={
+                                        skill[
+                                          subField.id as keyof ProgrammingSkill
+                                        ] || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleSkillChange(
+                                          currentService.id,
+                                          index,
+                                          subField.id,
+                                          e.target.value
+                                        )
+                                      }
+                                    >
+                                      {subField.options?.map((option) => (
+                                        <option key={option} value={option}>
+                                          {option}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  ) : (
+                                    <textarea
+                                      rows={5}
+                                      className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
+                                      placeholder="(例) HTML5とJavaScriptを用いてWebブラウザゲームを作成したことがある。"
+                                      value={
+                                        skill[
+                                          subField.id as keyof ProgrammingSkill
+                                        ] || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleSkillChange(
+                                          currentService.id,
+                                          index,
+                                          subField.id,
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-4">
+                          <button
+                            type="button"
+                            onClick={() => handleAddSkill(currentService.id)}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                          >
+                            + スキルを追加
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {skills.map((skill, index) => (
+                          <div
+                            key={index}
+                            className="p-4 rounded-md bg-gray-100"
+                          >
+                            <dl>
+                              {field.subFields?.map((subField) => (
+                                <div key={subField.id} className="mb-2">
+                                  <dt className="font-semibold text-sm text-gray-600">
+                                    {subField.label}
+                                  </dt>
+                                  <dd className="text-gray-800 whitespace-pre-wrap">
+                                    {
+                                      skill[
+                                        subField.id as keyof ProgrammingSkill
+                                      ]
+                                    }
+                                  </dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </div>
+                        ))}
+                        {skills.length === 0 && (
+                          <p className="text-gray-500">登録されていません。</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              // =======================================================
+              // ▼▼▼ 'intern_experiences' の場合のJSXを追加 ▼▼▼
+              // =======================================================
+              if (
+                field.type === "structured_list" &&
+                field.id === "intern_experiences"
+              ) {
+                const isEditing =
+                  editingSections[currentService.id]?.[field.id] || false;
+                const internships = (formTexts[currentService.id]?.[field.id] ||
+                  []) as Internship[];
+                const updatedAtTimestamp =
+                  lastUpdated[currentService.id]?.[field.id];
+                const lastUpdatedTime = updatedAtTimestamp
+                  ? new Date(updatedAtTimestamp).toLocaleString("ja-JP")
+                  : "未更新";
+
+                return (
+                  <div key={field.id} className="border-t pt-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="block text-lg font-semibold text-gray-700">
+                        {field.label}
+                      </h3>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs text-gray-500">
+                          最終更新: {lastUpdatedTime}
+                        </span>
+                        {isEditing ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleSaveInternships(currentService.id)
+                            }
+                            className="text-gray-500 hover:text-green-500"
+                          >
+                            <FaSave />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleEditSection(currentService.id, field.id)
+                            }
+                            className="text-gray-500 hover:text-blue-500"
+                          >
+                            <FaPencilAlt />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {isEditing ? (
+                      <div>
+                        <div className="space-y-6">
+                          {internships.map((internship, index) => (
+                            <div
+                              key={index}
+                              className="border rounded-lg p-4 relative bg-gray-50"
+                            >
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleRemoveInternship(
+                                    currentService.id,
+                                    index
+                                  )
+                                }
+                                className="absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold"
+                              >
+                                削除
+                              </button>
+                              {field.subFields?.map((subField) => (
+                                <div key={subField.id} className="mb-4">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <label className="block text-md font-medium text-gray-600">
+                                      {subField.label}
+                                    </label>
+                                    {subField.id === "content" && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleCopySubField(
+                                            currentService.id,
+                                            field.id,
+                                            index,
+                                            subField.id
+                                          )
+                                        }
+                                        className="text-gray-400 hover:text-blue-500"
+                                      >
+                                        <FaCopy />
+                                      </button>
+                                    )}
+                                  </div>
+                                  {subField.type === "select" ? (
+                                    <select
+                                      className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
+                                      value={
+                                        internship[
+                                          subField.id as keyof Internship
+                                        ] || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleInternshipChange(
+                                          currentService.id,
+                                          index,
+                                          subField.id,
+                                          e.target.value
+                                        )
+                                      }
+                                    >
+                                      {subField.options?.map((option) => (
+                                        <option key={option} value={option}>
+                                          {option}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  ) : (
+                                    <textarea
+                                      rows={subField.id === "content" ? 8 : 1}
+                                      className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
+                                      placeholder={
+                                        subField.id === "company"
+                                          ? "(例) 株式会社サポーターズ"
+                                          : ""
+                                      }
+                                      value={
+                                        internship[
+                                          subField.id as keyof Internship
+                                        ] || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleInternshipChange(
+                                          currentService.id,
+                                          index,
+                                          subField.id,
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-4">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleAddInternship(currentService.id)
+                            }
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                          >
+                            + インターン経験を追加
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {internships.map((internship, index) => (
+                          <div
+                            key={index}
+                            className="p-4 rounded-md bg-gray-100"
+                          >
+                            <dl>
+                              {field.subFields?.map((subField) => (
+                                <div key={subField.id} className="mb-2">
+                                  <dt className="font-semibold text-sm text-gray-600">
+                                    {subField.label}
+                                  </dt>
+                                  <dd className="text-gray-800 whitespace-pre-wrap">
+                                    {
+                                      internship[
+                                        subField.id as keyof Internship
+                                      ]
+                                    }
+                                  </dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </div>
+                        ))}
+                        {internships.length === 0 && (
+                          <p className="text-gray-500">登録されていません。</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              if (field.type === "structured_list") {
+                // =================================================
+                // ▼▼▼ field.id が 'researches' の場合のJSXを追加 ▼▼▼
+                // =================================================
+                if (
+                  field.type === "structured_list" &&
+                  field.id === "researches"
+                ) {
+                  const isEditing =
+                    editingSections[currentService.id]?.[field.id] || false;
+                  const researches = (formTexts[currentService.id]?.[
+                    field.id
+                  ] || []) as Research[];
+                  const updatedAtTimestamp =
+                    lastUpdated[currentService.id]?.[field.id];
+                  const lastUpdatedTime = updatedAtTimestamp
+                    ? new Date(updatedAtTimestamp).toLocaleString("ja-JP")
+                    : "未更新";
+
+                  return (
+                    <div key={field.id} className="border-t pt-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="block text-lg font-semibold text-gray-700">
+                          {field.label}
+                        </h3>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-gray-500">
+                            最終更新: {lastUpdatedTime}
+                          </span>
+                          {isEditing ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleSaveResearches(currentService.id)
+                              }
+                              className="text-gray-500 hover:text-green-500"
+                            >
+                              <FaSave />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleEditSection(currentService.id, field.id)
+                              }
+                              className="text-gray-500 hover:text-blue-500"
+                            >
+                              <FaPencilAlt />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {isEditing ? (
+                        <div>
+                          <div className="space-y-6">
+                            {researches.map((research, index) => (
+                              <div
+                                key={index}
+                                className="border rounded-lg p-4 relative bg-gray-50"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleRemoveResearch(
+                                      currentService.id,
+                                      index
+                                    )
+                                  }
+                                  className="absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold"
+                                >
+                                  削除
+                                </button>
+                                {field.subFields?.map((subField) => (
+                                  <div key={subField.id} className="mb-4">
+                                    <div className="flex justify-between items-center mb-1">
+                                      <label className="block text-md font-medium text-gray-600">
+                                        {subField.label}
+                                        {subField.charLimit > 0 &&
+                                          ` (最大${subField.charLimit}文字)`}
+                                      </label>
+                                      {subField.id === "content" && (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleCopySubField(
+                                              currentService.id,
+                                              field.id,
+                                              index,
+                                              subField.id
+                                            )
+                                          }
+                                          className="text-gray-400 hover:text-blue-500"
+                                        >
+                                          <FaCopy />
+                                        </button>
+                                      )}
+                                    </div>
+                                    <textarea
+                                      rows={subField.id === "content" ? 8 : 2}
+                                      className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
+                                      placeholder={`${subField.label}を入力してください`}
+                                      value={
+                                        research[
+                                          subField.id as keyof Research
+                                        ] || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleResearchChange(
+                                          currentService.id,
+                                          index,
+                                          subField.id,
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-4">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleAddResearch(currentService.id)
+                              }
+                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                            >
+                              + 研究を追加
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {researches.map((research, index) => (
+                            <div
+                              key={index}
+                              className="p-4 rounded-md bg-gray-100"
+                            >
+                              <dl>
+                                {field.subFields?.map((subField) => (
+                                  <div key={subField.id} className="mb-2">
+                                    <dt className="font-semibold text-sm text-gray-600">
+                                      {subField.label}
+                                    </dt>
+                                    <dd className="text-gray-800 whitespace-pre-wrap">
+                                      {research[subField.id as keyof Research]}
+                                    </dd>
+                                  </div>
+                                ))}
+                              </dl>
+                            </div>
+                          ))}
+                          {researches.length === 0 && (
+                            <p className="text-gray-500">
+                              登録されていません。
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                // =================================================
+                // ▼▼▼ field.id が 'products' の場合のJSXを追加 ▼▼▼
+                // =================================================
+                if (
+                  field.type === "structured_list" &&
+                  field.id === "products"
+                ) {
+                  const isEditing =
+                    editingSections[currentService.id]?.[field.id] || false;
+                  const products = (formTexts[currentService.id]?.[field.id] ||
+                    []) as Product[];
+                  const updatedAtTimestamp =
+                    lastUpdated[currentService.id]?.[field.id];
+                  const lastUpdatedTime = updatedAtTimestamp
+                    ? new Date(updatedAtTimestamp).toLocaleString("ja-JP")
+                    : "未更新";
+
+                  return (
+                    <div key={field.id} className="border-t pt-4">
+                      {/* ヘッダー部分：タイトル、最終更新日時、編集/保存ボタン */}
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="block text-lg font-semibold text-gray-700">
+                          {field.label}
+                        </h3>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-gray-500">
+                            最終更新: {lastUpdatedTime}
+                          </span>
+                          {isEditing ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleSaveProducts(currentService.id)
+                              }
+                              className="text-gray-500 hover:text-green-500"
+                            >
+                              <FaSave />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleEditSection(currentService.id, field.id)
+                              }
+                              className="text-gray-500 hover:text-blue-500"
+                            >
+                              <FaPencilAlt />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {isEditing ? (
+                        // 編集モードのUI：入力可能なフォーム要素を表示
+                        <div>
+                          <p className="text-sm text-gray-500 mb-4">
+                            制作物は{field.maxItems}つまで登録できます
+                          </p>
+                          <div className="space-y-6">
+                            {products.map((product, index) => (
+                              <div
+                                key={index}
+                                className="border rounded-lg p-4 relative bg-gray-50"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleRemoveProduct(
+                                      currentService.id,
+                                      index
+                                    )
+                                  }
+                                  className="absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold"
+                                >
+                                  削除
+                                </button>
+                                {field.subFields?.map((subField) => (
+                                  <div key={subField.id} className="mb-4">
+                                    <div className="flex justify-between items-center mb-1">
+                                      <label className="block text-md font-medium text-gray-600">
+                                        {subField.label}
+                                      </label>
+                                      {/* 「担当した箇所」にのみコピーボタンを表示 */}
+                                      {subField.id === "description" && (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleCopySubField(
+                                              currentService.id,
+                                              field.id,
+                                              index,
+                                              subField.id
+                                            )
+                                          }
+                                          className="text-gray-400 hover:text-blue-500"
+                                        >
+                                          <FaCopy />
+                                        </button>
+                                      )}
+                                    </div>
+                                    {subField.type === "textarea" ? (
+                                      <textarea
+                                        rows={
+                                          subField.id === "description" ? 5 : 3
+                                        }
+                                        className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
+                                        value={
+                                          product[
+                                            subField.id as keyof Product
+                                          ] || ""
+                                        }
+                                        onChange={(e) =>
+                                          handleProductChange(
+                                            currentService.id,
+                                            index,
+                                            subField.id,
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    ) : (
+                                      <select
+                                        className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
+                                        value={
+                                          product[
+                                            subField.id as keyof Product
+                                          ] || ""
+                                        }
+                                        onChange={(e) =>
+                                          handleProductChange(
+                                            currentService.id,
+                                            index,
+                                            subField.id,
+                                            e.target.value
+                                          )
+                                        }
+                                      >
+                                        {subField.options?.map((option) => (
+                                          <option key={option} value={option}>
+                                            {option}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                          {products.length < (field.maxItems || 0) && (
+                            <div className="mt-4">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleAddProduct(currentService.id)
+                                }
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                              >
+                                + 制作物を追加
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        // 表示モードのUI：読み取り専用のテキストを表示
+                        <div className="space-y-4">
+                          {products.map((product, index) => (
+                            <div
+                              key={index}
+                              className="p-4 rounded-md bg-gray-100"
+                            >
+                              <dl>
+                                {field.subFields?.map((subField) => (
+                                  <div key={subField.id} className="mb-2">
+                                    <dt className="font-semibold text-sm text-gray-600">
+                                      {subField.label}
+                                    </dt>
+                                    <dd className="text-gray-800 whitespace-pre-wrap">
+                                      {product[subField.id as keyof Product]}
+                                    </dd>
+                                  </div>
+                                ))}
+                              </dl>
+                            </div>
+                          ))}
+                          {products.length === 0 && (
+                            <p className="text-gray-500">
+                              登録されていません。
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+              }
+
+              // 通常のテキストエリアをレンダリング（既存のコード）
               const isEditing =
                 editingFields[currentService.id]?.[field.id] || false;
-              const currentText =
-                formTexts[currentService.id]?.[field.id] || "";
-
-              // ★ 1. Stateから最終更新日時を取得
+              const currentText = (formTexts[currentService.id]?.[field.id] ||
+                "") as string;
               const updatedAtTimestamp =
                 lastUpdated[currentService.id]?.[field.id];
               const lastUpdatedTime = updatedAtTimestamp
                 ? new Date(updatedAtTimestamp).toLocaleString("ja-JP")
                 : "未更新";
-
               return (
                 <div key={field.id} className="relative">
                   <label className="block text-lg font-semibold text-gray-700 mb-2">
