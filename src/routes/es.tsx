@@ -460,9 +460,10 @@ export default function ES() {
     if (user) {
       const saveLog = async () => {
         const { error } = await supabase.from("logs").insert({
+          id: crypto.randomUUID(),
           user_id: user.id,
           field_name: fieldId,
-          // target_table: serviceId, // 必要であれば
+          target_table: serviceId,
         });
         if (error) console.error("Error saving log:", error);
       };
