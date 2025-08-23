@@ -4,6 +4,8 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import "./index.css";
 import Home from "./routes/home";
 import About from "./routes/about";
+import Login from "./routes/login";
+import SignUp from "./routes/signup";
 import Services from "./routes/services";
 import SampleUsers from "./routes/sample-users";
 import Register from "./routes/register";
@@ -16,6 +18,14 @@ const router = createBrowserRouter([
   {
     path: "/about",
     element: <About />,
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/signup",
+    element: <SignUp />,
   },
   {
     path: "/services",

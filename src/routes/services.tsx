@@ -23,8 +23,14 @@ export default function Services() {
   };
 
   return (
-    <div className="flex-col p-83 bg-[#4699ca]/10 pt-19 max-w-8xl justify-center items-center">
-      <div className="max-w-3xl bg-white p-3 rounded-2xl shadow-xl justify-center items-center">
+    <div className="w-full min-h-screen flex-col bg-[#4699ca]/10 justify-center items-center">
+      <header className="w-full bg-blue-600 shadow-md">
+        {/* ↓ ポイント: このdivで囲む */}
+        <div className="container mx-auto px-6 py-4 text-white font-bold text-center text-3xl">
+          <nav>キャリマネ</nav>
+        </div>
+      </header>
+      <div className="pt-8 max-w-2xl bg-white p-3 rounded-2xl shadow-xl justify-center items-center translate-x-85 mt-5">
         <h1 className="text-3xl font-semibold mb-10 text-center pt-4">
           登録予定の就活サービスを全て選択してください
         </h1>
