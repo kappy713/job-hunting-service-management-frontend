@@ -1,5 +1,5 @@
-// src/registar/constants.ts
-import type { Form } from "../types";
+// src/constants.ts
+import type { Form } from "./types";
 
 export const INITIAL_FORM: Form = {
   lastName: "",

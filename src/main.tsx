@@ -6,6 +6,7 @@ import Home from "./routes/home";
 import About from "./routes/about";
 import Services from "./routes/services";
 import SampleUsers from "./routes/sample-users";
+import Register from "./routes/register";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
   {
     path: "/sample-users",
     element: <SampleUsers />,
+  },
+  {
+    path: "/register",
+    element: <Register />,
   },
 ]);
 

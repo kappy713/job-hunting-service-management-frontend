@@ -59,7 +59,7 @@ export default function Home() {
           </p>
         </div>
         {/* Navigation Links */}
-        <div className="flex justify-center space-x-4">
+        <div className="flex justify-center space-x-4 mb-4">
           <Link 
             to="/about" 
             className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
@@ -71,6 +71,12 @@ export default function Home() {
             className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
           >
             Sample Users
+          </Link>
+          <Link 
+            to="/register" 
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
+          >
+            Register
           </Link>
         </div>
         <div className="flex justify-center">
