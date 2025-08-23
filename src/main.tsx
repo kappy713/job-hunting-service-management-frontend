@@ -10,6 +10,7 @@ import SignUp from "./routes/signup";
 import Services from "./routes/services";
 import SampleUsers from "./routes/sample-users";
 import ES from "./routes/es";
+import Register from "./routes/register";
 
 const router = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
   {
     path: "/es",
     element: <ES />,
+   },
+  {
+    path: "/register",
+    element: <Register />,
   },
 ]);
 
