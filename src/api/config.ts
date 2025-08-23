@@ -1,0 +1,37 @@
+// API設定
+export const API_CONFIG = {
+  BASE_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080',
+  ENDPOINTS: {
+    SAMPLE_USERS: '/api/sample-users',
+  },
+} as const;
+
+// API呼び出しのベースfetch関数
+export const apiFetch = async <T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> => {
+  const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+  
+  const config: RequestInit = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  };
+
+  try {
+    const response = await fetch(url, config);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('API fetch error:', error);
+    throw error;
+  }
+};

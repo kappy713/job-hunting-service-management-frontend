@@ -5,6 +5,18 @@ import { FaPencilAlt, FaCopy, FaSave } from "react-icons/fa";
 // データ定義：コンポーネントの外に記述
 const servicesData = [
   {
+    id: "myES",
+    name: "マイエントリーシート",
+    fields: [
+      {
+        id: "self_promotion",
+        label: "自己PR",
+        charLimit: 0,
+        recommended: "",
+      },
+    ],
+  },
+  {
     id: "mynavi",
     name: "マイナビ",
     fields: [
