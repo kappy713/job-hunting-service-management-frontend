@@ -1063,7 +1063,7 @@ export default function ES() {
                                     )}
                                   </div>
                                   {subField.type === "select" &&
-                                  subField.options ? ( // subField.optionsの存在チェックを追加
+                                  subField.options ? (
                                     <select
                                       className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
                                       value={
@@ -1080,8 +1080,8 @@ export default function ES() {
                                         )
                                       }
                                     >
+                                      {/* optionsが存在することを確認したので、`?`を削除し、型を明示的に指定 */}
                                       {subField.options.map(
-                                        // subField.optionsがundefinedでないため、`?`を削除
                                         (option: string) => (
                                           <option key={option} value={option}>
                                             {option}
@@ -1267,13 +1267,7 @@ export default function ES() {
                                           e.target.value
                                         )
                                       }
-                                    >
-                                      {subField.options?.map((option) => (
-                                        <option key={option} value={option}>
-                                          {option}
-                                        </option>
-                                      ))}
-                                    </select>
+                                    ></select>
                                   ) : (
                                     <textarea
                                       rows={subField.id === "content" ? 8 : 1}
@@ -1425,8 +1419,9 @@ export default function ES() {
                                     <div className="flex justify-between items-center mb-1">
                                       <label className="block text-md font-medium text-gray-600">
                                         {subField.label}
-                                        {subField.charLimit > 0 &&
-                                          ` (最大${subField.charLimit}文字)`}
+                                        {subField.charLimit &&
+                                          subField.charLimit > 0 &&
+                                          ` (${subField.charLimit}文字以内)`}
                                       </label>
                                       {subField.id === "content" && (
                                         <button
@@ -1648,13 +1643,7 @@ export default function ES() {
                                             e.target.value
                                           )
                                         }
-                                      >
-                                        {subField.options?.map((option) => (
-                                          <option key={option} value={option}>
-                                            {option}
-                                          </option>
-                                        ))}
-                                      </select>
+                                      ></select>
                                     )}
                                   </div>
                                 ))}
@@ -1723,7 +1712,9 @@ export default function ES() {
                 <div key={field.id} className="relative">
                   <label className="block text-lg font-semibold text-gray-700 mb-2">
                     {field.label}
-                    {field.charLimit > 0 && ` (${field.charLimit}文字以内)`}
+                    {field.charLimit &&
+                      field.charLimit > 0 &&
+                      ` (${field.charLimit}文字以内)`}
                   </label>
 
                   {/* --- アイコンエリア --- */}
