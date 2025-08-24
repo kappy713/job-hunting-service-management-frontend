@@ -1433,7 +1433,7 @@ export default function ES() {
                                     rows={subField.id === "description" ? 5 : 2}
                                     className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
                                     placeholder={`${subField.label}を入力してください`}
-                                    value={(item as any)[subField.id] || ""}
+                                    value={subField.id === "name" ? item.name : item.description || ""}
                                     onChange={(e) =>
                                       handleSimpleItemChange(
                                         currentService.id,
@@ -1474,7 +1474,7 @@ export default function ES() {
                                     {subField.label}
                                   </dt>
                                   <dd className="text-gray-800 whitespace-pre-wrap">
-                                    {(item as any)[subField.id]}
+                                    {subField.id === "name" ? item.name : item.description}
                                   </dd>
                                 </div>
                               ))}
