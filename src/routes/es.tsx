@@ -468,7 +468,9 @@ export default function ES() {
   const [editingSections, setEditingSections] = useState<EditingState>({});
 
   const [lastUpdated, setLastUpdated] = useState<LastUpdatedResponse>({});
-  const [user, setUser] = useState<User | null>(null);
+
+  //supabase保存可能になればsetUserの_消す
+  const [user, _setUser] = useState<User | null>(null);
 
   // ★ 1. ユーザーが選択したサービスだけを保持するState
   const [userServices, setUserServices] = useState<typeof servicesData>([]);
@@ -487,9 +489,10 @@ export default function ES() {
     index: number,
     subFieldId: string
   ) => {
-    const list = (formTexts[serviceId]?.[fieldId] || []) as any[];
-    if (list && list[index]) {
-      const textToCopy = list[index][subFieldId] || "";
+    const fieldData = formTexts[serviceId]?.[fieldId];
+    if (Array.isArray(fieldData) && fieldData[index]) {
+      const item = fieldData[index];
+      const textToCopy = item[subFieldId as keyof typeof item] || "";
       navigator.clipboard.writeText(textToCopy);
       alert("コピーしました！");
     }
