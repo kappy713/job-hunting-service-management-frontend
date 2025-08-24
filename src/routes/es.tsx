@@ -1063,7 +1063,7 @@ export default function ES() {
                                     )}
                                   </div>
                                   {subField.type === "select" &&
-                                  (subField as any).options ? (
+                                  'options' in subField && subField.options ? (
                                     <select
                                       className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
                                       value={
@@ -1081,7 +1081,7 @@ export default function ES() {
                                       }
                                     >
                                       {/* optionsが存在することを確認したので、`?`を削除し、型を明示的に指定 */}
-                                      {(subField as any).options?.map(
+                                      {('options' in subField ? subField.options : [])?.map(
                                         (option: string) => (
                                           <option key={option} value={option}>
                                             {option}
