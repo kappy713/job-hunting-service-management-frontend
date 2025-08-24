@@ -20,6 +20,10 @@ export const API_CONFIG = {
   BASE_URL: getBaseUrl(),
   ENDPOINTS: {
     SAMPLE_USERS: '/api/sample-users',
+    USER_SERVICE_DETAILS: (userId: string) => `/api/user/${userId}/service-details`,
+    USER_SERVICES: (userId: string) => `/api/user/${userId}/services`,
+    USER_LOG: (userId: string) => `/api/log/${userId}`,
+    AI_GENERATE_PROFILES: '/api/ai/generate-profiles',
   },
 } as const;
 

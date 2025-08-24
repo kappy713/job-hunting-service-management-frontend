@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { userAPI } from "../api/user";
+import { PulseLoader } from "react-spinners";
 
 const jobServices = [
   { value: "mynavi", name: "マイナビ" },
@@ -40,7 +41,7 @@ export default function Services() {
       await userAPI.updateServices(selectedServices);
       
       console.log('サービス更新完了');
-      navigate('/');
+      navigate('/es'); // AI生成完了後はESページに遷移
     } catch (error) {
       console.error('サービス更新エラー:', error);
       console.error(`更新に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`);
@@ -50,27 +51,48 @@ export default function Services() {
   };
 
   return (
-    <div className="w-full min-h-screen flex-col bg-[#4699ca]/10 justify-center items-center relative">
+    <div className="w-full min-h-screen flex flex-col bg-[#4699ca]/10 relative">
       {/* ローディングオーバーレイ */}
       {isLoading && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 flex flex-col items-center shadow-xl">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-lg font-semibold text-gray-700">AI生成中</p>
+        <div className="fixed inset-0 bg-gray-300 bg-opacity-30 z-50">
+          {/* ヘッダー */}
+          <header className="w-full bg-blue-600 shadow-md">
+            <div className="container mx-auto px-6 py-4 text-white font-bold text-center text-3xl">
+              <nav>キャリマネ</nav>
+            </div>
+          </header>
+          
+          {/* ローディング表示 */}
+          <div className="flex items-center justify-center min-h-screen -mt-16">
+            <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center shadow-xl">
+              <div className="mb-6">
+                <PulseLoader
+                  color="#3b82f6"
+                  size={15}
+                  margin={2}
+                  speedMultiplier={0.8}
+                />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">AI生成中</h3>
+              <p className="text-gray-600 mb-2">ローディング</p>
+              <p className="text-sm text-gray-500">生成中は現在のページを操作しないでください。</p>
+            </div>
           </div>
         </div>
       )}
       
       <header className="w-full bg-blue-600 shadow-md">
-        {/* ↓ ポイント: このdivで囲む */}
         <div className="container mx-auto px-6 py-4 text-white font-bold text-center text-3xl">
           <nav>キャリマネ</nav>
         </div>
       </header>
-      <div className="pt-8 max-w-2xl bg-white p-3 rounded-2xl shadow-xl justify-center items-center translate-x-85 mt-5">
-        <h1 className="text-3xl font-semibold mb-10 text-center pt-4">
-          登録予定の就活サービスを全て選択してください
-        </h1>
+      
+      {/* メインコンテンツを中央配置 */}
+      <div className="flex-1 flex justify-center items-center py-8">
+        <div className="max-w-2xl bg-white p-8 rounded-2xl shadow-xl mx-4">
+          <h1 className="text-3xl font-semibold mb-10 text-center">
+            登録予定の就活サービスを全て選択してください
+          </h1>
         <div className="flex flex-wrap gap-7 max-w-2xl justify-center items-center">
           {jobServices.map((service) => {
             const isSelected = selectedServices.includes(service.name);
@@ -102,7 +124,7 @@ export default function Services() {
           })}
         </div>
 
-        <div className="mt-8 translate-x-135">
+        <div className="mt-8 flex justify-center">
           <button
             onClick={handleSave}
             className="bg-gradient-to-r from-[#1760a0] to-[#1760a0] font-bold py-3 px-9 rounded-md transition-all duration-300 transform hover:scale-105 text-white disabled:opacity-50 disabled:cursor-not-allowed"
@@ -110,6 +132,7 @@ export default function Services() {
           >
             {isLoading ? '処理中...' : '決定'}
           </button>
+        </div>
         </div>
       </div>
     </div>

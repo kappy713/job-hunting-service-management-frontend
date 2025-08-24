@@ -37,14 +37,14 @@ export default function SignUp() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/register-profile`,
         },
       });
 
       if (error) {
         throw new Error(error.message);
       }
-      navigate("/");
+      navigate("/register-profile");
     } catch (err) {
       console.log(err);
     } finally {
@@ -59,7 +59,7 @@ export default function SignUp() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `${window.location.origin}/register-profile`,
       },
     });
 
