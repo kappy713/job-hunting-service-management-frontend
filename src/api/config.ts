@@ -8,10 +8,10 @@ const getBaseUrl = () => {
   console.log('🔍 DEBUG: import.meta.env =', import.meta.env);
   
   // 環境変数が設定されていない、または空の場合のフォールバック
-  if (!envUrl || envUrl.trim() === '') {
+  if (!envUrl || envUrl.trim() === '' || envUrl === 'undefined') {
     console.warn('VITE_BACKEND_URL is not set, using default localhost');
     // 本番環境では実際のバックエンドURLに変更してください
-    return import.meta.env.PROD ? 'https://your-backend-url.com' : 'http://localhost:8080';
+    return import.meta.env.PROD ? 'http://localhost:8080' : 'http://localhost:8080';
   }
   
   // URLの妥当性をチェック
@@ -21,7 +21,7 @@ const getBaseUrl = () => {
     return envUrl;
   } catch (error) {
     console.error('Invalid VITE_BACKEND_URL:', envUrl, error);
-    return import.meta.env.PROD ? 'https://your-backend-url.com' : 'http://localhost:8080';
+    return 'http://localhost:8080'; // より安全なフォールバック
   }
 };
 
