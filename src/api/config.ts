@@ -1,17 +1,59 @@
 // API設定
+const getBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_BACKEND_URL;
+  
+  // デバッグ用：環境変数の値をコンソールに出力
+  console.log('🔍 DEBUG: VITE_BACKEND_URL =', envUrl);
+  console.log('🔍 DEBUG: typeof VITE_BACKEND_URL =', typeof envUrl);
+  console.log('🔍 DEBUG: import.meta.env =', import.meta.env);
+  
+  // 環境変数が設定されていない、または空の場合のフォールバック
+  if (!envUrl || envUrl.trim() === '') {
+    console.warn('VITE_BACKEND_URL is not set, using default localhost');
+    // 本番環境では実際のバックエンドURLに変更してください
+    return import.meta.env.PROD ? 'https://your-backend-url.com' : 'http://localhost:8080';
+  }
+  
+  // URLの妥当性をチェック
+  try {
+    new URL(envUrl);
+    console.log('✅ Valid URL:', envUrl);
+    return envUrl;
+  } catch (error) {
+    console.error('Invalid VITE_BACKEND_URL:', envUrl, error);
+    return import.meta.env.PROD ? 'https://your-backend-url.com' : 'http://localhost:8080';
+  }
+};
+
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080',
+  BASE_URL: getBaseUrl(),
   ENDPOINTS: {
     SAMPLE_USERS: '/api/sample-users',
   },
 } as const;
+
+// デバッグ用：最終的なAPI設定を出力
+console.log('🔧 DEBUG: Final API_CONFIG =', API_CONFIG);
 
 // API呼び出しのベースfetch関数
 export const apiFetch = async <T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> => {
-  const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+  // URL構築の安全性チェック
+  if (!endpoint) {
+    throw new Error('Endpoint is required');
+  }
+  
+  const baseUrl = API_CONFIG.BASE_URL;
+  const url = `${baseUrl}${endpoint}`;
+  
+  // 最終的なURLの妥当性チェック
+  try {
+    new URL(url);
+  } catch {
+    throw new Error(`Invalid URL constructed: ${url}`);
+  }
   
   const config: RequestInit = {
     headers: {
