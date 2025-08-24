@@ -891,9 +891,18 @@ export default function ES() {
   };
 
   const handleCopyClick = (serviceId: string, fieldId: string) => {
-    const textToCopy = formTexts[serviceId]?.[fieldId] || "";
-    navigator.clipboard.writeText(textToCopy);
-    alert("コピーしました！");
+    // formTextsからデータを取得
+    const dataToCopy = formTexts[serviceId]?.[fieldId];
+
+    // データが文字列型であることを確認
+    if (typeof dataToCopy === "string") {
+      // 文字列であればクリップボードにコピー
+      navigator.clipboard.writeText(dataToCopy);
+      alert("コピーしました！");
+    } else {
+      // 文字列でなければ、コピーできない旨をユーザーに通知
+      alert("このフィールドはコピーできません。");
+    }
   };
 
   // --- レンダリングのためのデータ準備 ---
@@ -1053,7 +1062,8 @@ export default function ES() {
                                       </button>
                                     )}
                                   </div>
-                                  {subField.type === "select" ? (
+                                  {subField.type === "select" &&
+                                  subField.options ? ( // subField.optionsの存在チェックを追加
                                     <select
                                       className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
                                       value={
@@ -1070,11 +1080,14 @@ export default function ES() {
                                         )
                                       }
                                     >
-                                      {subField.options?.map((option) => (
-                                        <option key={option} value={option}>
-                                          {option}
-                                        </option>
-                                      ))}
+                                      {subField.options.map(
+                                        // subField.optionsがundefinedでないため、`?`を削除
+                                        (option: string) => (
+                                          <option key={option} value={option}>
+                                            {option}
+                                          </option>
+                                        )
+                                      )}
                                     </select>
                                   ) : (
                                     <textarea
