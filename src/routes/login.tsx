@@ -45,7 +45,7 @@ export default function Login() {
       if (error) {
         throw new Error(error.message);
       }
-      navigate("/");
+      navigate("/es");
     } catch (err) {
       console.log(err);
     } finally {
@@ -61,7 +61,7 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `${window.location.origin}/es`,
       },
     });
 
