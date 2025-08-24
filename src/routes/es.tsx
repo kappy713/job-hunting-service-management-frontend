@@ -266,19 +266,6 @@ const servicesData = [
               "C#",
             ],
           },
-          {
-            id: "application",
-            label: "用途",
-            type: "select",
-            options: [
-              "Webフロントエンド",
-              "Webバックエンド",
-              "iOSアプリ",
-              "Androidアプリ",
-              "機械学習",
-              "データ分析",
-            ],
-          },
           { id: "overview", label: "概要", charLimit: 500, type: "textarea" },
         ],
       },
@@ -291,22 +278,6 @@ const servicesData = [
             id: "company",
             label: "インターン・開発アルバイト先",
             type: "textarea",
-          },
-          // 期間は選択式にします
-          {
-            id: "period",
-            label: "期間",
-            type: "select",
-            options: [
-              "1日",
-              "2~3日",
-              "1週間",
-              "2週間",
-              "1ヶ月",
-              "3ヶ月",
-              "半年",
-              "1年以上",
-            ],
           },
           { id: "content", label: "内容", charLimit: 2000, type: "textarea" },
         ],
@@ -321,18 +292,6 @@ const servicesData = [
         // 1つの制作物が持つサブフィールドを定義
         subFields: [
           { id: "overview", label: "概要", charLimit: 200, type: "textarea" },
-          {
-            id: "place",
-            label: "取り組んだ場所",
-            type: "select",
-            options: [
-              "個人開発",
-              "チーム開発",
-              "インターン",
-              "ハッカソン",
-              "授業",
-            ],
-          },
           {
             id: "tech_stack",
             label: "技術スタック",
