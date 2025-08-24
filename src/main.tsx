@@ -4,10 +4,12 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import "./index.css";
 import Home from "./routes/home";
 import About from "./routes/about";
+import Servicees from "./routes/es";
 import Login from "./routes/login";
 import SignUp from "./routes/signup";
 import Services from "./routes/services";
 import SampleUsers from "./routes/sample-users";
+import ES from "./routes/es";
 import Register from "./routes/register";
 import Profile from "./routes/profile";
 
@@ -19,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/about",
     element: <About />,
+  },
+  {
+    path: "/servicees",
+    element: <Servicees />,
   },
   {
     path: "/login",
@@ -36,6 +42,10 @@ const router = createBrowserRouter([
     path: "/sample-users",
     element: <SampleUsers />,
   },
+  {
+    path: "/es",
+    element: <ES />,
+   },
   {
     path: "/register-profile",
     element: <Register />,

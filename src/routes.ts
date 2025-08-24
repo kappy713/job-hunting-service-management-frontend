@@ -9,11 +9,19 @@ export const routes = [
     file: "routes/about.tsx",
   },
   {
+    path: "/servicees",
+    file: "routes/servicees.tsx",
+  },
+  {
     path: "/login",
     file: "routes/login.tsx",
   },
   {
     path: "/signup",
     file: "routes/signup.tsx",
+  },
+  {
+    path: "/es",
+    file: "routes/es.tsx",
   },
 ];
