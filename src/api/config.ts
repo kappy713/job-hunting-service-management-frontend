@@ -42,7 +42,7 @@ export const apiFetch = async <T>(
   // 最終的なURLの妥当性チェック
   try {
     new URL(url);
-  } catch (error) {
+  } catch {
     throw new Error(`Invalid URL constructed: ${url}`);
   }
   
