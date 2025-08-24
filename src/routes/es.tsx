@@ -469,8 +469,9 @@ export default function ES() {
 
   const [lastUpdated, setLastUpdated] = useState<LastUpdatedResponse>({});
 
-  //supabase保存可能になればsetUserの_消す
-  const [user, _setUser] = useState<User | null>(null);
+  //supabase保存可能になればsetUserつきのほうにする
+  //const [user, _setUser] = useState<User | null>(null);
+  const [user] = useState<User | null>(null);
 
   // ★ 1. ユーザーが選択したサービスだけを保持するState
   const [userServices, setUserServices] = useState<typeof servicesData>([]);
