@@ -11,6 +11,32 @@ import SampleUsers from "./routes/sample-users";
 import Register from "./routes/register";
 import Profile from "./routes/profile";
 
+// デバッグ情報を最初に出力
+console.log('🚀 App starting - Environment variables:', {
+  VITE_BACKEND_URL: import.meta.env.VITE_BACKEND_URL,
+  MODE: import.meta.env.MODE,
+  PROD: import.meta.env.PROD,
+  DEV: import.meta.env.DEV,
+  all: import.meta.env
+});
+
+// グローバルエラーハンドラー
+window.addEventListener('error', (event) => {
+  console.error('🚨 Global Error:', event.error);
+  console.error('🚨 Error details:', {
+    message: event.message,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno,
+    stack: event.error?.stack
+  });
+});
+
+// 未処理のPromise rejectionもキャッチ
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('🚨 Unhandled Promise Rejection:', event.reason);
+});
+
 const router = createBrowserRouter([
   {
     path: "/",
