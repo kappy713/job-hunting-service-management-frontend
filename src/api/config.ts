@@ -25,7 +25,18 @@ export const apiFetch = async <T>(
     const response = await fetch(url, config);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // エラーレスポンスの詳細を取得
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.error) {
+          errorMessage += ` - ${errorData.error}`;
+        }
+        console.error('API Error Details:', errorData);
+      } catch {
+        console.error('Could not parse error response as JSON');
+      }
+      throw new Error(errorMessage);
     }
     
     const data = await response.json();

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { userAPI } from "../api/user";
 
 const jobServices = [
   { value: "mynavi", name: "マイナビ" },
@@ -11,8 +12,10 @@ const jobServices = [
 ];
 
 export default function Services() {
+  const navigate = useNavigate();
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleServiceClick = (serviceName: string) => {
     if (selectedServices.includes(serviceName)) {
@@ -24,16 +27,41 @@ export default function Services() {
     }
   };
 
-  const handleSubmit = () => {
-    // ここで選択されたサービスをSupabaseに保存する処理を追加
-    console.log("選択されたサービス:", selectedServices);
+  const handleSave = async () => {
+    if (selectedServices.length === 0) {
+      console.warn('サービスが選択されていません');
+      return;
+    }
 
-    // /es ページに移動
-    navigate("/es");
+    try {
+      setIsLoading(true);
+      console.log('サービス更新開始:', selectedServices);
+      
+      // バックエンドAPIに送信（日本語のサービス名をそのまま送信）
+      await userAPI.updateServices(selectedServices);
+      
+      console.log('サービス更新完了');
+      navigate('/');
+    } catch (error) {
+      console.error('サービス更新エラー:', error);
+      console.error(`更新に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="w-full min-h-screen flex-col bg-[#4699ca]/10 justify-center items-center">
+    <div className="w-full min-h-screen flex-col bg-[#4699ca]/10 justify-center items-center relative">
+      {/* ローディングオーバーレイ */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 flex flex-col items-center shadow-xl">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-lg font-semibold text-gray-700">AI生成中</p>
+          </div>
+        </div>
+      )}
+      
       <header className="w-full bg-blue-600 shadow-md">
         {/* ↓ ポイント: このdivで囲む */}
         <div className="container mx-auto px-6 py-4 text-white font-bold text-center text-3xl">
@@ -77,11 +105,11 @@ export default function Services() {
 
         <div className="mt-8 translate-x-135">
           <button
-            onClick={handleSubmit}
-            className="bg-gradient-to-r from-[#1760a0] to-[#1760a0] font-bold py-3 px-9 rounded-md transition-all duration-300 transform hover:scale-105 text-white"
-            disabled={selectedServices.length === 0}
+            onClick={handleSave}
+            className="bg-gradient-to-r from-[#1760a0] to-[#1760a0] font-bold py-3 px-9 rounded-md transition-all duration-300 transform hover:scale-105 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={selectedServices.length === 0 || isLoading}
           >
-            決定
+            {isLoading ? '処理中...' : '決定'}
           </button>
         </div>
       </div>

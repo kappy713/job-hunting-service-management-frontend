@@ -1,11 +1,10 @@
 // src/components/RegistrationForm.tsx
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import type { Form } from "../types";
+import { INITIAL_FORM } from "../constants";
 
 type Props = {
-  form: Form;
-  setForm: React.Dispatch<React.SetStateAction<Form>>;
-  onRegister?: () => void;
+  onSubmit?: (validatedForm: Form) => void;
 };
 
 const ALL_GRADES = [
@@ -22,8 +21,22 @@ const ALL_TRACKS = [
 const ALL_AGES = Array.from({ length: 23 }, (_, i) => 18 + i);
 const ALL_JOBS = ["エンジニア"] as const;
 
-export default function RegistrationForm({ form, setForm, onRegister }: Props) {
+export default function RegistrationForm({ onSubmit }: Props) {
+  const [form, setForm] = useState<Form>(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // 起動時に保存データを復元
+  useEffect(() => {
+    const saved = localStorage.getItem("userFormData");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as Partial<Form>;
+        setForm({ ...INITIAL_FORM, ...parsed });
+      } catch {
+        setForm({ ...INITIAL_FORM });
+      }
+    }
+  }, []);
 
   const handleChange = (key: keyof Form, value: string | string[] | number) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -57,11 +70,13 @@ export default function RegistrationForm({ form, setForm, onRegister }: Props) {
 
   const isInvalid = useMemo(() => Object.keys(validate(form)).length > 0, [form, validate]);
 
-  const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+  const handleFormSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     const v = validate(form);
     setErrors(v);
-    if (Object.keys(v).length === 0) onRegister?.();
+    if (Object.keys(v).length === 0) {
+      onSubmit?.(form);
+    }
   };
 
   const toHyphenYMD = (raw: string) => {
@@ -86,7 +101,7 @@ export default function RegistrationForm({ form, setForm, onRegister }: Props) {
 
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
-          <form className="bg-white shadow-lg rounded-lg p-6 sm:p-8" onSubmit={onSubmit}>
+          <form className="bg-white shadow-lg rounded-lg p-6 sm:p-8" onSubmit={handleFormSubmit}>
             <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">会員情報</h2>
 
             <div className="space-y-6">

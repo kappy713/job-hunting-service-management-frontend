@@ -11,6 +11,7 @@ import Services from "./routes/services";
 import SampleUsers from "./routes/sample-users";
 import ES from "./routes/es";
 import Register from "./routes/register";
+import Profile from "./routes/profile";
 
 const router = createBrowserRouter([
   {
@@ -34,7 +35,7 @@ const router = createBrowserRouter([
     element: <SignUp />,
   },
   {
-    path: "/services",
+    path: "/register-services",
     element: <Services />,
   },
   {
@@ -46,8 +47,12 @@ const router = createBrowserRouter([
     element: <ES />,
    },
   {
-    path: "/register",
+    path: "/register-profile",
     element: <Register />,
+  },
+  {
+    path: "/register-es",
+    element: <Profile />,
   },
 ]);
 
