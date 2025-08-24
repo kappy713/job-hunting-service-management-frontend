@@ -12,7 +12,6 @@ const jobServices = [
 ];
 
 export default function Services() {
-  const navigate = useNavigate();
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
