@@ -12,13 +12,52 @@ import Register from "./routes/register";
 import Profile from "./routes/profile";
 
 // デバッグ情報を最初に出力
-console.log('🚀 App starting - Environment variables:', {
+const debugInfo = {
   VITE_BACKEND_URL: import.meta.env.VITE_BACKEND_URL,
   MODE: import.meta.env.MODE,
   PROD: import.meta.env.PROD,
   DEV: import.meta.env.DEV,
   all: import.meta.env
-});
+};
+
+console.log('🚀 App starting - Environment variables:', debugInfo);
+console.error('🚀 FORCE DEBUG - Environment variables:', debugInfo);
+console.warn('🚀 WARN DEBUG - Environment variables:', debugInfo);
+
+// DOMにも表示（開発時のみ）
+if (!import.meta.env.PROD) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const debugDiv = document.createElement('div');
+    debugDiv.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      background: red;
+      color: white;
+      padding: 10px;
+      z-index: 9999;
+      font-family: monospace;
+      font-size: 12px;
+      max-width: 300px;
+      word-break: break-all;
+    `;
+    debugDiv.innerHTML = `DEBUG: VITE_BACKEND_URL = ${import.meta.env.VITE_BACKEND_URL || 'UNDEFINED'}`;
+    document.body.appendChild(debugDiv);
+    
+    // 5秒後に削除
+    setTimeout(() => debugDiv.remove(), 5000);
+  });
+}
+
+// alertでも強制表示
+if (typeof window !== 'undefined') {
+  window.setTimeout(() => {
+    console.log('🔥 FORCED LOG:', { 
+      backend_url: import.meta.env.VITE_BACKEND_URL,
+      env_keys: Object.keys(import.meta.env)
+    });
+  }, 1000);
+}
 
 // グローバルエラーハンドラー
 window.addEventListener('error', (event) => {
