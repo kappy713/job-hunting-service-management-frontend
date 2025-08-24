@@ -2,6 +2,31 @@ import { useState, useEffect } from "react";
 import { FaPencilAlt, FaCopy, FaSave } from "react-icons/fa";
 import { supabase } from "../utils/supabase"; // パスをエイリアスに変更
 import type { User } from "@supabase/supabase-js";
+import { API_CONFIG } from "../api/config";
+import { PulseLoader } from "react-spinners";
+
+// 日時フォーマット関数
+const formatDateTime = (isoString: string): string => {
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleString("ja-JP", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "未更新";
+  }
+};
+
+// サービスIDとAPIログキーのマッピング
+const SERVICE_TO_LOG_KEY: { [key: string]: string } = {
+  myES: "profiles",
+  supporters: "supporterz", 
+  career_select: "career_select",
+};
 
 // データ定義
 const servicesData = [
@@ -10,10 +35,92 @@ const servicesData = [
     name: "マイエントリーシート",
     fields: [
       {
+        id: "career_vision",
+        label: "キャリアビジョン",
+        charLimit: 400,
+        recommended: "",
+      },
+      {
         id: "self_promotion",
         label: "自己PR",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "",
+      },
+      {
+        id: "gakuchika",
+        label: "ガクチカ（学生時代に頑張ったこと）",
+        charLimit: 400,
+        recommended: "",
+      },
+      {
+        id: "research",
+        label: "研究内容",
+        charLimit: 500,
+        recommended: "",
+      },
+      {
+        id: "activities",
+        label: "部活・サークル・団体活動経験",
+        charLimit: 400,
+        recommended: "",
+      },
+      {
+        id: "desired_roles_text",
+        label: "希望職種",
+        charLimit: 200,
+        recommended: "",
+      },
+      {
+        id: "company_axes_text",
+        label: "企業選びの軸",
+        charLimit: 300,
+        recommended: "",
+      },
+      {
+        id: "ideal_engineer",
+        label: "理想のエンジニア像",
+        charLimit: 400,
+        recommended: "",
+      },
+      {
+        id: "skills",
+        label: "スキル",
+        type: "structured_list",
+        maxItems: 10,
+        subFields: [
+          { id: "name", label: "スキル名", charLimit: 100, type: "textarea" },
+          { id: "description", label: "スキルの説明", charLimit: 500, type: "textarea" },
+        ],
+      },
+      {
+        id: "works",
+        label: "制作物・開発経験",
+        type: "structured_list",
+        maxItems: 5,
+        subFields: [
+          { id: "name", label: "制作物名", charLimit: 100, type: "textarea" },
+          { id: "description", label: "制作物の説明", charLimit: 500, type: "textarea" },
+        ],
+      },
+      {
+        id: "experiences",
+        label: "経験（インターン・アルバイト・活動）",
+        type: "structured_list",
+        maxItems: 5,
+        subFields: [
+          { id: "name", label: "経験名", charLimit: 100, type: "textarea" },
+          { id: "description", label: "経験の説明", charLimit: 500, type: "textarea" },
+        ],
+      },
+      {
+        id: "certifications",
+        label: "資格",
+        type: "structured_list",
+        maxItems: 10,
+        subFields: [
+          { id: "name", label: "資格名", charLimit: 100, type: "textarea" },
+          { id: "description", label: "資格の説明", charLimit: 500, type: "textarea" },
+        ],
       },
     ],
   },
@@ -42,97 +149,97 @@ const servicesData = [
       {
         id: "desired_job_type",
         label: "志望職種",
-        charLimit: 0,
+        charLimit: 200,
         recommended: "",
       },
       {
         id: "career_aspiration",
         label: "どのようなエンジニアになりたいですか？",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "",
       },
       {
         id: "interested_tasks",
         label: "どのような業務に関心がありますか？",
-        charLimit: 0,
+        charLimit: 300,
         recommended: "",
       },
       {
         id: "job_requirements",
         label: "就職先に求めること",
-        charLimit: 0,
+        charLimit: 300,
         recommended: "",
       },
       {
         id: "interested_industries",
         label: "興味のある業界",
-        charLimit: 0,
+        charLimit: 200,
         recommended: "",
       },
       {
         id: "preferred_company_size",
         label: "希望企業規模",
-        charLimit: 0,
+        charLimit: 100,
         recommended: "",
       },
       {
         id: "interested_business_types",
         label: "興味のある業態",
-        charLimit: 0,
+        charLimit: 200,
         recommended: "",
       },
       {
         id: "preferred_work_location",
         label: "希望勤務地",
-        charLimit: 0,
+        charLimit: 100,
         recommended: "",
       },
       {
         id: "skills",
         label: "プログラミング言語",
-        charLimit: 0,
+        charLimit: 300,
         recommended: "",
       },
       {
         id: "skill_descriptions",
         label: "経験",
-        charLimit: 0,
+        charLimit: 500,
         recommended: "",
       },
       {
         id: "portfolio",
         label: "ポートフォリオURL",
-        charLimit: 0,
+        charLimit: 200,
         recommended: "",
       },
       {
         id: "portfolio_description",
         label: "ポートフォリオの説明",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "200文字以上推奨",
       },
       {
         id: "intern_experiences",
         label: "インターン経験",
-        charLimit: 0,
+        charLimit: 300,
         recommended: "",
       },
       {
         id: "intern_experience_descriptions",
         label: "取り組んだこと",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "200文字以上推奨",
       },
       {
         id: "hackathon_experiences",
         label: "ハッカソン経験",
-        charLimit: 0,
+        charLimit: 300,
         recommended: "",
       },
       {
         id: "hackathon_experience_descriptions",
         label: "取り組んだこと",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "200文字以上推奨",
       },
       {
@@ -156,19 +263,19 @@ const servicesData = [
       {
         id: "certifications",
         label: "資格・その他スキル",
-        charLimit: 0,
+        charLimit: 300,
         recommended: "",
       },
       {
         id: "languages",
         label: "言語",
-        charLimit: 0,
+        charLimit: 200,
         recommended: "",
       },
       {
         id: "language_levels",
         label: "言語スキルレベル",
-        charLimit: 0,
+        charLimit: 200,
         recommended: "",
       },
     ],
@@ -204,13 +311,13 @@ const servicesData = [
       {
         id: "products",
         label: "学生時代の活動実績",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "",
       },
       {
         id: "intern_experiences",
         label: "インターン実績",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "",
       },
       {
@@ -307,13 +414,13 @@ const servicesData = [
           {
             id: "url",
             label: "GitHubリポジトリURL",
-            charLimit: 0,
+            charLimit: 200,
             type: "textarea",
           },
           {
             id: "other_url",
             label: "その他のURL",
-            charLimit: 0,
+            charLimit: 200,
             type: "textarea",
           },
         ],
@@ -336,25 +443,25 @@ const servicesData = [
       {
         id: "skills",
         label: "プログラミングスキル",
-        charLimit: 0,
+        charLimit: 300,
         recommended: "",
       },
       {
         id: "skill_description",
         label: "用途",
-        charLimit: 0,
+        charLimit: 200,
         recommended: "",
       },
       {
         id: "career_vision",
         label: "キャリアビジョン",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "",
       },
       {
         id: "self_promotion",
         label: "自己PR",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "",
       },
       {
@@ -366,25 +473,25 @@ const servicesData = [
       {
         id: "products",
         label: "開発物・開発経験",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "",
       },
       {
         id: "experiences",
         label: "これまでの経験",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "",
       },
       {
         id: "intern_experiences",
         label: "インターン・アルバイト",
-        charLimit: 0,
+        charLimit: 400,
         recommended: "",
       },
       {
         id: "certifications",
         label: "資格",
-        charLimit: 0,
+        charLimit: 300,
         recommended: "",
       },
     ],
@@ -434,6 +541,11 @@ type ProgrammingSkill = {
   overview: string;
 };
 
+type SimpleItem = {
+  name: string;
+  description: string;
+};
+
 type FormState = {
   [serviceId: string]: {
     // ここで `any[]` を `Product[]` に置き換えます
@@ -442,7 +554,8 @@ type FormState = {
       | Product[]
       | Research[]
       | Internship[]
-      | ProgrammingSkill[];
+      | ProgrammingSkill[]
+      | SimpleItem[];
   };
 };
 
@@ -470,12 +583,12 @@ export default function ES() {
   const [lastUpdated, setLastUpdated] = useState<LastUpdatedResponse>({});
 
   //supabase保存可能になればsetUserつきのほうにする
-  //const [user, _setUser] = useState<User | null>(null);
-  const [user] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   // ★ 1. ユーザーが選択したサービスだけを保持するState
   const [userServices, setUserServices] = useState<typeof servicesData>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleEditSection = (serviceId: string, fieldId: string) => {
     setEditingSections((prev) => ({
@@ -495,7 +608,6 @@ export default function ES() {
       const item = fieldData[index];
       const textToCopy = item[subFieldId as keyof typeof item] || "";
       navigator.clipboard.writeText(textToCopy);
-      alert("コピーしました！");
     }
   };
 
@@ -520,6 +632,46 @@ export default function ES() {
         products: newProducts,
       },
     }));
+  };
+
+  // AI一括生成関数
+  const handleBatchGenerate = async () => {
+    if (!user?.id) {
+      alert("ユーザー情報が取得できません。再度ログインしてください。");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AI_GENERATE_PROFILES}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          services: ["supporterz", "career_select", "one_career", "mynavi", "levtech_rookie"]
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('AI生成結果:', result);
+      
+      if (result.status === 'success') {
+        // ページをリロードして最新データを取得
+        window.location.reload();
+      } else {
+        console.error('AI生成エラー:', result.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('AI生成エラー:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleAddProduct = (serviceId: string) => {
@@ -561,15 +713,15 @@ export default function ES() {
       formTexts[serviceId]?.products || []
     );
     const newTimestamp = new Date().toISOString();
+    const logKey = SERVICE_TO_LOG_KEY[serviceId] || serviceId;
     setLastUpdated((prev) => ({
       ...prev,
-      [serviceId]: { ...prev[serviceId], products: newTimestamp },
+      [logKey]: { ...prev[logKey], products: newTimestamp },
     }));
     setEditingSections((prev) => ({
       ...prev,
       [serviceId]: { ...prev[serviceId], products: false },
     }));
-    alert("制作物を保存しました！");
   };
 
   const handleResearchChange = (
@@ -623,15 +775,15 @@ export default function ES() {
       formTexts[serviceId]?.researches || []
     );
     const newTimestamp = new Date().toISOString();
+    const logKey = SERVICE_TO_LOG_KEY[serviceId] || serviceId;
     setLastUpdated((prev) => ({
       ...prev,
-      [serviceId]: { ...prev[serviceId], researches: newTimestamp },
+      [logKey]: { ...prev[logKey], researches: newTimestamp },
     }));
     setEditingSections((prev) => ({
       ...prev,
       [serviceId]: { ...prev[serviceId], researches: false },
     }));
-    alert("研究内容を保存しました！");
   };
 
   const handleInternshipChange = (
@@ -692,15 +844,15 @@ export default function ES() {
       formTexts[serviceId]?.intern_experiences || []
     );
     const newTimestamp = new Date().toISOString();
+    const logKey = SERVICE_TO_LOG_KEY[serviceId] || serviceId;
     setLastUpdated((prev) => ({
       ...prev,
-      [serviceId]: { ...prev[serviceId], intern_experiences: newTimestamp },
+      [logKey]: { ...prev[logKey], intern_experiences: newTimestamp },
     }));
     setEditingSections((prev) => ({
       ...prev,
       [serviceId]: { ...prev[serviceId], intern_experiences: false },
     }));
-    alert("インターン経験を保存しました！");
   };
 
   // スキルリスト内のテキスト変更を処理するハンドラ
@@ -757,36 +909,79 @@ export default function ES() {
       formTexts[serviceId]?.skills || []
     );
     const newTimestamp = new Date().toISOString();
+    const logKey = SERVICE_TO_LOG_KEY[serviceId] || serviceId;
     setLastUpdated((prev) => ({
       ...prev,
-      [serviceId]: { ...prev[serviceId], skills: newTimestamp },
+      [logKey]: { ...prev[logKey], skills: newTimestamp },
     }));
     setEditingSections((prev) => ({
       ...prev,
       [serviceId]: { ...prev[serviceId], skills: false },
     }));
-    alert("プログラミングスキルを保存しました！");
+  };
+
+  // Simple Item用のハンドラー関数
+  const handleSimpleItemChange = (
+    serviceId: string,
+    fieldId: string,
+    itemIndex: number,
+    subFieldId: string,
+    value: string
+  ) => {
+    const currentItems = (formTexts[serviceId]?.[fieldId] || []) as SimpleItem[];
+    const newItems = currentItems.map((item, index) => {
+      if (index === itemIndex) {
+        return { ...item, [subFieldId]: value };
+      }
+      return item;
+    });
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], [fieldId]: newItems },
+    }));
+  };
+
+  const handleAddSimpleItem = (serviceId: string, fieldId: string) => {
+    const newItem: SimpleItem = { name: "", description: "" };
+    const currentItems = (formTexts[serviceId]?.[fieldId] || []) as SimpleItem[];
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: {
+        ...prev[serviceId],
+        [fieldId]: [...currentItems, newItem],
+      },
+    }));
+  };
+
+  const handleRemoveSimpleItem = (serviceId: string, fieldId: string, itemIndex: number) => {
+    const currentItems = (formTexts[serviceId]?.[fieldId] || []) as SimpleItem[];
+    const newItems = currentItems.filter((_, index) => index !== itemIndex);
+    setFormTexts((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], [fieldId]: newItems },
+    }));
+  };
+
+  const handleSaveSimpleItems = (serviceId: string, fieldId: string, fieldLabel: string) => {
+    console.log(
+      `保存する${fieldLabel}データ (${serviceId}):`,
+      formTexts[serviceId]?.[fieldId] || []
+    );
+    const newTimestamp = new Date().toISOString();
+    const logKey = SERVICE_TO_LOG_KEY[serviceId] || serviceId;
+    setLastUpdated((prev) => ({
+      ...prev,
+      [logKey]: { ...prev[logKey], [fieldId]: newTimestamp },
+    }));
+    setEditingSections((prev) => ({
+      ...prev,
+      [serviceId]: { ...prev[serviceId], [fieldId]: false },
+    }));
   };
 
   // ユーザー情報の取得と、最終更新日時を取得
   useEffect(() => {
-    // デモ用に、表示したいサービスのIDを配列として定義。消す！！！！
-    const demoSelectedServiceIds = [
-      "supporters",
-      "levtech_rookie",
-      "one_career",
-    ];
-    const filteredServices = servicesData.filter((service) =>
-      demoSelectedServiceIds.includes(service.id)
-    );
-    setUserServices(filteredServices);
-    if (filteredServices.length > 0) {
-      setActiveTab(filteredServices[0].id);
-    }
-    setIsLoading(false);
-
-    //以下、バックエンドと繋げたらコメントアウト解除!!!!!!!!!
-    /*async function fetchData() {
+    async function fetchData() {
       // 1. 現在のログインユーザー情報を取得
       const {
         data: { user },
@@ -794,48 +989,181 @@ export default function ES() {
       setUser(user);
 
       if (user) {
-        // 2. ユーザーが選択したサービスを取得
-        const { data, error } = await supabase
-          .from("users") // あなたのプロフィールテーブル名
-          .select("services") // サービスが保存されているカラム名
-          .eq("id", user.id)
-          .single();
+        try {
+          // 実際のAPIからデータを取得
+          // const testUserId = 'b867c4ed-e2c5-46eb-a50d-35c62a1e22a2'; // 固定UUID（後で使うかもしれないのでコメントアウト）
+          const userId = user.id;
+          const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USER_SERVICE_DETAILS(userId)}`);
+          
+          if (response.ok) {
+            const serviceData = await response.json();
+            console.log('API service data:', serviceData);
+            
+            // 3. サービス情報とデータを使用してUIを更新
+            if (serviceData.services && serviceData.services.length > 0) {
+              // サービス名のマッピング（APIのサービス名 → servicesDataのname）
+              const serviceNameMapping: { [key: string]: string } = {
+                'サポーターズ': 'サポーターズ',
+                'キャリアセレクト': 'キャリアセレクト',
+              };
+              
+              // ユーザーが選択したサービスをフィルタリング
+              const filteredServices = servicesData.filter((service) => {
+                return serviceData.services.some((apiServiceName: string) => 
+                  serviceNameMapping[apiServiceName] === service.name
+                );
+              });
+              
+              // マイエントリーシートを常に先頭に追加
+              const myESService = servicesData.find(service => service.id === "myES");
+              const finalServices = myESService 
+                ? [myESService, ...filteredServices.filter(service => service.id !== "myES")]
+                : filteredServices;
+                
+              setUserServices(finalServices);
+              if (finalServices.length > 0) {
+                setActiveTab(finalServices[0].id);
+              }
 
-        if (error) {
-          console.error("Error fetching profile:", error);
-          setIsLoading(false);
-          return;
-        }
+              // 4. 取得したAPIデータをformTextsに設定
+              const initialFormData: FormState = {};
+              
+              // キャリアセレクトのデータを設定
+              if (serviceData.data.career_select) {
+                const careerSelectData = serviceData.data.career_select;
+                initialFormData['career_select'] = {
+                  career_vision: careerSelectData.career_vision || '',
+                  self_promotion: careerSelectData.self_promotion || '',
+                  skills: careerSelectData.skills || [],
+                  skill_descriptions: careerSelectData.skill_descriptions || [],
+                  company_selection_criteria: careerSelectData.company_selection_criteria || [],
+                  company_selection_criteria_descriptions: careerSelectData.company_selection_criteria_descriptions || [],
+                  research: careerSelectData.research || '',
+                  products: careerSelectData.products || [],
+                  product_descriptions: careerSelectData.product_descriptions || [],
+                  experiences: careerSelectData.experiences || [],
+                  experience_descriptions: careerSelectData.experience_descriptions || [],
+                  intern_experiences: careerSelectData.intern_experiences || [],
+                  intern_experience_descriptions: careerSelectData.intern_experience_descriptions || [],
+                  certifications: careerSelectData.certifications || [],
+                  certification_descriptions: careerSelectData.certification_descriptions || [],
+                };
+              }
 
-        if (data && data.services) {
-          const selectedServiceNames = data.services;
+              // サポーターズのデータを設定
+              if (serviceData.data.supporterz) {
+                const supporterzData = serviceData.data.supporterz;
+                initialFormData['supporters'] = {
+                  career_vision: supporterzData.career_vision || '',
+                  self_promotion: supporterzData.self_promotion || '',
+                  skills: supporterzData.skills || [],
+                  skill_descriptions: supporterzData.skill_descriptions || [],
+                  intern_experiences: supporterzData.intern_experiences || [],
+                  intern_experience_descriptions: supporterzData.intern_experience_descriptions || [],
+                  products: supporterzData.products || [],
+                  product_tech_stacks: supporterzData.product_tech_stacks || [],
+                  product_descriptions: supporterzData.product_descriptions || [],
+                  researches: supporterzData.researches || [],
+                  research_descriptions: supporterzData.research_descriptions || [],
+                };
+              }
 
-          // ★ 3. 全サービスリストから、ユーザーが選択したものだけを名前でフィルタリング
-          const filteredServices = servicesData.filter(
-            (service) => selectedServiceNames.includes(service.name) // `id`ではなく`name`で照合
-          );
-          setUserServices(filteredServices);
-          if (filteredServices.length > 0) {
-            setActiveTab(filteredServices[0].id);
+              // プロフィール（マイエントリーシート）のデータを設定
+              if (serviceData.data.profile) {
+                const profileData = serviceData.data.profile;
+                
+                // インターン経験のデータを正しい形式に変換
+                const internExperiences = [];
+                if (profileData.interns && profileData.intern_descriptions) {
+                  const interns = profileData.interns || [];
+                  const descriptions = profileData.intern_descriptions || [];
+                  
+                  for (let i = 0; i < Math.max(interns.length, descriptions.length); i++) {
+                    internExperiences.push({
+                      name: interns[i] || '',
+                      description: descriptions[i] || ''
+                    });
+                  }
+                }
+                
+                initialFormData['myES'] = {
+                  career_vision: profileData.career_vision || '',
+                  self_promotion: profileData.self_promotion || '',
+                  gakuchika: profileData.gakuchika || '',
+                  ideal_engineer: profileData.ideal_engineer || '',
+                  skills: profileData.skills || [],
+                  works: profileData.works || [],
+                  experiences: internExperiences,
+                  certifications: profileData.certifications || [],
+                };
+              }
+
+              setFormTexts(initialFormData);
+            } else {
+              // サービスが選択されていない場合でもマイエントリーシートは表示
+              const myESService = servicesData.find(service => service.id === "myES");
+              if (myESService) {
+                setUserServices([myESService]);
+                setActiveTab("myES");
+              }
+            }
+          } else {
+            console.error('API request failed:', response.status);
+            // エラーの場合もマイエントリーシートは表示
+            const myESService = servicesData.find(service => service.id === "myES");
+            if (myESService) {
+              setUserServices([myESService]);
+              setActiveTab("myES");
+            }
+          }
+
+        } catch (error) {
+          console.error('Error fetching service details:', error);
+          // エラーの場合もマイエントリーシートは表示
+          const myESService = servicesData.find(service => service.id === "myES");
+          if (myESService) {
+            setUserServices([myESService]);
+            setActiveTab("myES");
           }
         }
 
-        // 3. 最終更新日時のログを取得（API呼び出し）
-        // あなたのバックエンドAPIのエンドポイントをここに設定します
-        // const response = await fetch('/api/get-logs');
-        // const logsData: LastUpdatedResponse = await response.json();
-
-        // 今回はダミーデータをそのまま使います
-        const logsData: LastUpdatedResponse = {
-          mynavi: { self_promotion: "2025-08-23T10:30:00+09:00" },
-          levtech_rookie: { desired_job_type: "2025-08-22T14:00:00+09:00" },
-        };
-        setLastUpdated(logsData);
+      } else {
+        // ログインしていない場合でもマイエントリーシートは表示
+        const myESService = servicesData.find(service => service.id === "myES");
+        if (myESService) {
+          setUserServices([myESService]);
+          setActiveTab("myES");
+        }
       }
+
+      // ログイン状態に関係なくログデータを取得
+      try {
+        // const testUserId = 'b867c4ed-e2c5-46eb-a50d-35c62a1e22a2'; // 固定UUID（後で使うかもしれないのでコメントアウト）
+        const userId = user?.id;
+        if (userId) {
+          const logResponse = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USER_LOG(userId)}`);
+          
+          if (logResponse.ok) {
+            const logData = await logResponse.json();
+            console.log('API log data:', logData);
+            setLastUpdated(logData);
+          } else {
+            console.error('Log API request failed:', logResponse.status);
+            setLastUpdated({});
+          }
+        } else {
+          console.log('User not logged in, skipping log data fetch');
+          setLastUpdated({});
+        }
+      } catch (error) {
+        console.error('Error fetching log data:', error);
+        setLastUpdated({});
+      }
+
       setIsLoading(false); // 全てのデータ取得が終わったらローディングを解除
     }
 
-    fetchData();*/
+    fetchData();
   }, []);
   // --- イベントハンドラー関数 ---
   const handleTextChange = (
@@ -863,15 +1191,15 @@ export default function ES() {
     }));
     const textToSave = formTexts[serviceId]?.[fieldId] || "";
     console.log(`保存するテキスト (${serviceId} - ${fieldId}): ${textToSave}`);
-    alert("保存しました！");
     // 1. 新しい日時を生成
-    const newTimestamp = new Date().toLocaleString("ja-JP");
+    const newTimestamp = new Date().toISOString();
 
     // 2. lastUpdated Stateを更新
+    const logKey = SERVICE_TO_LOG_KEY[serviceId] || serviceId;
     setLastUpdated((prev) => ({
       ...prev,
-      [serviceId]: {
-        ...prev[serviceId],
+      [logKey]: {
+        ...prev[logKey],
         [fieldId]: newTimestamp,
       },
     }));
@@ -898,10 +1226,6 @@ export default function ES() {
     if (typeof dataToCopy === "string") {
       // 文字列であればクリップボードにコピー
       navigator.clipboard.writeText(dataToCopy);
-      alert("コピーしました！");
-    } else {
-      // 文字列でなければ、コピーできない旨をユーザーに通知
-      alert("このフィールドはコピーできません。");
     }
   };
 
@@ -923,9 +1247,46 @@ export default function ES() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-4 md:p-8">
-      {/* --- タブナビゲーション --- */}
-      <div className="border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50 relative">
+      {/* AI生成中のローディングオーバーレイ */}
+      {isGenerating && (
+        <div className="fixed inset-0 bg-gray-300 bg-opacity-30 z-50">
+          {/* ヘッダー */}
+          <header className="bg-blue-500 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <h1 className="text-2xl font-bold text-white py-4 text-center">キャリマネ</h1>
+            </div>
+          </header>
+          
+          {/* ローディング表示 */}
+          <div className="flex items-center justify-center min-h-screen -mt-16">
+            <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center shadow-xl">
+              <div className="mb-6">
+                <PulseLoader
+                  color="#3b82f6"
+                  size={15}
+                  margin={2}
+                  speedMultiplier={0.8}
+                />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">AI生成中</h3>
+              <p className="text-gray-600 mb-2">ローディング</p>
+              <p className="text-sm text-gray-500">生成中は現在のページを操作しないでください。</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Header */}
+      <header className="bg-blue-500 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-2xl font-bold text-white py-4 text-center">キャリマネ</h1>
+        </div>
+      </header>
+
+      <div className="w-full max-w-5xl mx-auto p-4 md:p-8 mt-4">
+        {/* --- タブナビゲーション --- */}
+        <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
           {/* --- マイエントリーシートタブを常に表示 --- */}
           <button
@@ -969,8 +1330,16 @@ export default function ES() {
       <div className="mt-8">
         {activeTab == "myES" && (
           <div className="flex justify-start mb-6">
-            <button className="bg-[#1760a0] hover:scale-105 text-white font-bold py-2 px-6 rounded-lg text-base">
-              一括生成
+            <button 
+              onClick={handleBatchGenerate}
+              disabled={isGenerating}
+              className={`${
+                isGenerating 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-[#1760a0] hover:scale-105'
+              } text-white font-bold py-2 px-6 rounded-lg text-base transition-all duration-200`}
+            >
+              {isGenerating ? '生成中...' : '一括生成'}
             </button>
           </div>
         )}
@@ -978,17 +1347,162 @@ export default function ES() {
           <form className="space-y-8">
             {currentService.fields.map((field) => {
               // ===========================================
-              // ▼▼▼ 'skills' の場合のJSXを追加 ▼▼▼
+              // ▼▼▼ マイエントリーシートのSimpleItem形式 ▼▼▼
               // ===========================================
-              if (field.type === "structured_list" && field.id === "skills") {
+              if (
+                field.type === "structured_list" && 
+                currentService.id === "myES" &&
+                (field.id === "skills" || field.id === "works" || field.id === "experiences" || field.id === "certifications")
+              ) {
+                const isEditing = editingSections[currentService.id]?.[field.id] || false;
+                const items = (formTexts[currentService.id]?.[field.id] || []) as SimpleItem[];
+                const logKey = SERVICE_TO_LOG_KEY[currentService.id] || currentService.id;
+                const updatedAtTimestamp = lastUpdated[logKey]?.[field.id];
+                const lastUpdatedTime = updatedAtTimestamp
+                  ? formatDateTime(updatedAtTimestamp)
+                  : "未更新";
+
+                return (
+                  <div key={field.id} className="border-t pt-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="block text-lg font-semibold text-gray-700">
+                        {field.label}
+                      </h3>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs text-gray-500">
+                          最終更新: {lastUpdatedTime}
+                        </span>
+                        {isEditing ? (
+                          <button
+                            type="button"
+                            onClick={() => handleSaveSimpleItems(currentService.id, field.id, field.label)}
+                            className="text-gray-500 hover:text-green-500"
+                          >
+                            <FaSave />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleEditSection(currentService.id, field.id)}
+                            className="text-gray-500 hover:text-blue-500"
+                          >
+                            <FaPencilAlt />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {isEditing ? (
+                      <div>
+                        <div className="space-y-6">
+                          {items.map((item, index) => (
+                            <div
+                              key={index}
+                              className="border rounded-lg p-4 relative bg-gray-50"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveSimpleItem(currentService.id, field.id, index)}
+                                className="absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold"
+                              >
+                                削除
+                              </button>
+                              {field.subFields?.map((subField) => (
+                                <div key={subField.id} className="mb-4">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <label className="block text-md font-medium text-gray-600">
+                                      {subField.label}
+                                    </label>
+                                    {subField.id === "description" && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleCopySubField(
+                                            currentService.id,
+                                            field.id,
+                                            index,
+                                            subField.id
+                                          )
+                                        }
+                                        className="text-gray-400 hover:text-blue-500"
+                                      >
+                                        <FaCopy />
+                                      </button>
+                                    )}
+                                  </div>
+                                  <textarea
+                                    rows={subField.id === "description" ? 5 : 2}
+                                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
+                                    placeholder={`${subField.label}を入力してください`}
+                                    value={(item as any)[subField.id] || ""}
+                                    onChange={(e) =>
+                                      handleSimpleItemChange(
+                                        currentService.id,
+                                        field.id,
+                                        index,
+                                        subField.id,
+                                        e.target.value
+                                      )
+                                    }
+                                    maxLength={subField.charLimit || undefined}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-4">
+                          <button
+                            type="button"
+                            onClick={() => handleAddSimpleItem(currentService.id, field.id)}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                          >
+                            + {field.label}を追加
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {items.map((item, index) => (
+                          <div
+                            key={index}
+                            className="p-4 rounded-md bg-gray-100"
+                          >
+                            <dl>
+                              {field.subFields?.map((subField) => (
+                                <div key={subField.id} className="mb-2">
+                                  <dt className="font-semibold text-sm text-gray-600">
+                                    {subField.label}
+                                  </dt>
+                                  <dd className="text-gray-800 whitespace-pre-wrap">
+                                    {(item as any)[subField.id]}
+                                  </dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </div>
+                        ))}
+                        {items.length === 0 && (
+                          <p className="text-gray-500">登録されていません。</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              // ===========================================
+              // ▼▼▼ サポーターズのスキル ▼▼▼
+              // ===========================================
+              if (field.type === "structured_list" && field.id === "skills" && currentService.id === "supporters") {
                 const isEditing =
                   editingSections[currentService.id]?.[field.id] || false;
                 const skills = (formTexts[currentService.id]?.[field.id] ||
                   []) as ProgrammingSkill[];
+                const logKey = SERVICE_TO_LOG_KEY[currentService.id] || currentService.id;
                 const updatedAtTimestamp =
-                  lastUpdated[currentService.id]?.[field.id];
+                  lastUpdated[logKey]?.[field.id];
                 const lastUpdatedTime = updatedAtTimestamp
-                  ? new Date(updatedAtTimestamp).toLocaleString("ja-JP")
+                  ? formatDateTime(updatedAtTimestamp)
                   : "未更新";
 
                 return (
@@ -1159,20 +1673,22 @@ export default function ES() {
               }
 
               // =======================================================
-              // ▼▼▼ 'intern_experiences' の場合のJSXを追加 ▼▼▼
+              // ▼▼▼ サポーターズの 'intern_experiences' ▼▼▼
               // =======================================================
               if (
                 field.type === "structured_list" &&
-                field.id === "intern_experiences"
+                field.id === "intern_experiences" &&
+                currentService.id === "supporters"
               ) {
                 const isEditing =
                   editingSections[currentService.id]?.[field.id] || false;
                 const internships = (formTexts[currentService.id]?.[field.id] ||
                   []) as Internship[];
+                const logKey = SERVICE_TO_LOG_KEY[currentService.id] || currentService.id;
                 const updatedAtTimestamp =
-                  lastUpdated[currentService.id]?.[field.id];
+                  lastUpdated[logKey]?.[field.id];
                 const lastUpdatedTime = updatedAtTimestamp
-                  ? new Date(updatedAtTimestamp).toLocaleString("ja-JP")
+                  ? formatDateTime(updatedAtTimestamp)
                   : "未更新";
 
                 return (
@@ -1344,21 +1860,23 @@ export default function ES() {
               }
               if (field.type === "structured_list") {
                 // =================================================
-                // ▼▼▼ field.id が 'researches' の場合のJSXを追加 ▼▼▼
+                // ▼▼▼ サポーターズの 'researches' ▼▼▼
                 // =================================================
                 if (
                   field.type === "structured_list" &&
-                  field.id === "researches"
+                  field.id === "researches" &&
+                  currentService.id === "supporters"
                 ) {
                   const isEditing =
                     editingSections[currentService.id]?.[field.id] || false;
                   const researches = (formTexts[currentService.id]?.[
                     field.id
                   ] || []) as Research[];
+                  const logKey = SERVICE_TO_LOG_KEY[currentService.id] || currentService.id;
                   const updatedAtTimestamp =
-                    lastUpdated[currentService.id]?.[field.id];
+                    lastUpdated[logKey]?.[field.id];
                   const lastUpdatedTime = updatedAtTimestamp
-                    ? new Date(updatedAtTimestamp).toLocaleString("ja-JP")
+                    ? formatDateTime(updatedAtTimestamp)
                     : "未更新";
 
                   return (
@@ -1419,9 +1937,7 @@ export default function ES() {
                                     <div className="flex justify-between items-center mb-1">
                                       <label className="block text-md font-medium text-gray-600">
                                         {subField.label}
-                                        {subField.charLimit &&
-                                          subField.charLimit > 0 &&
-                                          ` (${subField.charLimit}文字以内)`}
+                                        {subField.charLimit && subField.charLimit > 0 && ` (${subField.charLimit}文字以内)`}
                                       </label>
                                       {subField.id === "content" && (
                                         <button
@@ -1508,20 +2024,22 @@ export default function ES() {
                 }
 
                 // =================================================
-                // ▼▼▼ field.id が 'products' の場合のJSXを追加 ▼▼▼
+                // ▼▼▼ サポーターズの 'products' ▼▼▼
                 // =================================================
                 if (
                   field.type === "structured_list" &&
-                  field.id === "products"
+                  field.id === "products" &&
+                  currentService.id === "supporters"
                 ) {
                   const isEditing =
                     editingSections[currentService.id]?.[field.id] || false;
                   const products = (formTexts[currentService.id]?.[field.id] ||
                     []) as Product[];
+                  const logKey = SERVICE_TO_LOG_KEY[currentService.id] || currentService.id;
                   const updatedAtTimestamp =
-                    lastUpdated[currentService.id]?.[field.id];
+                    lastUpdated[logKey]?.[field.id];
                   const lastUpdatedTime = updatedAtTimestamp
-                    ? new Date(updatedAtTimestamp).toLocaleString("ja-JP")
+                    ? formatDateTime(updatedAtTimestamp)
                     : "未更新";
 
                   return (
@@ -1703,18 +2221,17 @@ export default function ES() {
                 editingFields[currentService.id]?.[field.id] || false;
               const currentText = (formTexts[currentService.id]?.[field.id] ||
                 "") as string;
+              const logKey = SERVICE_TO_LOG_KEY[currentService.id] || currentService.id;
               const updatedAtTimestamp =
-                lastUpdated[currentService.id]?.[field.id];
+                lastUpdated[logKey]?.[field.id];
               const lastUpdatedTime = updatedAtTimestamp
-                ? new Date(updatedAtTimestamp).toLocaleString("ja-JP")
+                ? formatDateTime(updatedAtTimestamp)
                 : "未更新";
               return (
                 <div key={field.id} className="relative">
                   <label className="block text-lg font-semibold text-gray-700 mb-2">
                     {field.label}
-                    {field.charLimit &&
-                      field.charLimit > 0 &&
-                      ` (${field.charLimit}文字以内)`}
+                    {field.charLimit && field.charLimit > 0 && ` (${field.charLimit}文字以内)`}
                   </label>
 
                   {/* --- アイコンエリア --- */}
@@ -1777,6 +2294,7 @@ export default function ES() {
           </form>
         )}
       </div>
+    </div>
     </div>
   );
 }
