@@ -4,6 +4,8 @@
 就活サービスの情報(自己PRやキャリア観、スキルなど)を一元管理するプロダクト<br>
 キャリマネで書いたESから複数の就活サービスに対応する項目を生成できる
 
+バックエンドのリポジトリは[こちら](https://github.com/kappy713/job-hunting-service-management-backend)
+
 ## 開発環境
 - Node.js：22.18.0
 - React：19.1.1
